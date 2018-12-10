@@ -5,8 +5,6 @@ end)
 
 function MainScene:ctor()
     --【不变数据】
-    local personX={110,110,640,1190,1190};--人头像位置
-    local personY={560,320,150,320,560};
 	local worldW=4320;
 	local worldH=1500;
 	local screenW=1920;
@@ -14,10 +12,20 @@ function MainScene:ctor()
 	local button_move_R=190/2;
 	local button_move_midXmid=-700;
 	local button_move_midYmid=-280;
-	local button_attack1_midXmid=700;
-	local button_attack1_midYmid=-280;
-	local button_attack2_midXmid=840;
-	local button_attack2_midYmid=-420;
+	button_attack1_midXmid=700;
+	button_attack1_midYmid=-280;
+	button_attack1_R=95/2;
+	button_attack2_midXmid=840;
+	button_attack2_midYmid=-420;
+	button_attack2_R=95/2;
+	local camera_midXmid=0;
+	local camera_midYmid=0;
+	local ismoving=false;
+	local u_ismoving=false;
+	local caser=0;
+	room=-1;--使timer里可调用，不可加local。但是 SP加local都能在timer里调用
+	sofa=-1;
+	--【服务器包含的[房间公共]数据：】
 	local I_midXmid=0;
 	local I_midYmid=0;
 	local I_life=100;
@@ -29,117 +37,166 @@ function MainScene:ctor()
 	local car1_life=100;
 	local car2_midXmid=1100;
 	local car2_midYmid=-280;
-	local car2_life=10;
+	local car2_life=100;
 	local tower1_life=100;
 	local tower2_life=100;
-	local camera_midXmid=0;
-	local camera_midYmid=0;
-	local move_dir=0;
+	local move_dir=0;--通过接收服务器发来的消息得到
+	local attack_dir=3;--通过接收服务器发来的消息得到
 	local u_move_dir=0;
-	local ismoving=false;
-	local u_ismoving=false;
+	local u_attack_dir=3;
 	local casert=0;
+	--【服务器包含的[玩家不同]数据：】
+	local BY_link={};
+	local BY_ready={};
+	local BY_money={};
+	local BY_name={};
+	local BY_photo={};
     --【限制】
     display.addSpriteFrames("img/animation/animate_I.plist","img/animation/animate_I.pvr.ccz");
 	display.addSpriteFrames("img/plist/car.plist","img/plist/car.png");
+	display.addSpriteFrames("img/plist/life.plist","img/plist/life.png");
     math.randomseed(os.time());
     math.random(1,10000);
-	
     --【数据】
-    local pai1={311,311,311,311,311};
-    local pai2={311,311,311,311,311};
-    local pai3={311,311,311,311,311};
-	local movepoint_x=0;
-	local movepoint_y=0;
-    --【预加载】
-	--背景：
+	local movepoint_x=1920/2-700;--小摇杆显示位置辅助
+	local movepoint_y=1080/2-280;
+	local client_move_dir=0;--玩家通过操作来改变（玩家输入层变量）
+	local direction_to_server=-1;--记上帧我方向，如我[client_move_dir]向变，就发送到服务器（玩家输入层变量）
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+	--【预加载】
+	--find game 背景：
+	local SP_BG_findgame=display.newSprite("img/find_game/find_game.png");
+    SP_BG_findgame:align(display.CENTER, 1920/2, 1080/2);
+    SP_BG_findgame:addTo(self);
+    SP_BG_findgame:setVisible(false);
+	
+	animate=cc.MoveTo:create(1,cc.p(768/2, 1080-206/2));
+    animate2=cc.EaseBounceOut:create(animate);
+	local SP_BG_findgameZI=display.newSprite("img/find_game/find_game_zi.png");
+    SP_BG_findgameZI:align(display.CENTER, 1920+768/2, 1080-206/2);
+    SP_BG_findgameZI:addTo(self);
+    SP_BG_findgameZI:setVisible(false);
+	SP_BG_findgameZI:setScale(0.8);
+	SP_BG_findgameZI:runAction(animate2);
+-----------------------------------------------------------------------------------------------------------------------------------
+	--game后背景：
     local SP_background3=display.newSprite("img/game/BG3.png");
     SP_background3:align(display.CENTER, screenW/2, screenH/2);
     SP_background3:addTo(self);
-    SP_background3:setVisible(true);
+    SP_background3:setVisible(false);
 	
 	local SP_background2=display.newSprite("img/game/BG2.png");
     SP_background2:align(display.CENTER, screenW/2, screenH/2);
     SP_background2:addTo(self);
-    SP_background2:setVisible(true);
+    SP_background2:setVisible(false);
 	
 	local SP_background1=display.newSprite("img/game/BG1.png");
     SP_background1:align(display.CENTER, screenW/2, screenH/2);
     SP_background1:addTo(self);
-    SP_background1:setVisible(true);
+    SP_background1:setVisible(false);
 	
-	local SP_background0=display.newSprite("img/game/BG0.png");
-    SP_background0:align(display.CENTER, screenW/2, screenH/2);
-    SP_background0:addTo(self);
-    SP_background0:setVisible(false);
 	--:防御塔的攻击范围：
 	local SP_tower_circle1=display.newSprite("img/game/tower_circle1.png");
     SP_tower_circle1:align(display.CENTER, screenW/2-1200, screenH/2-350);
     SP_tower_circle1:addTo(self);
-    SP_tower_circle1:setVisible(true);
+    SP_tower_circle1:setVisible(false);
 	SP_tower_circle1:setScale(5);
 	
 	local SP_tower_circle2=display.newSprite("img/game/tower_circle2.png");
     SP_tower_circle2:align(display.CENTER, screenW/2+1200, screenH/2-350);
     SP_tower_circle2:addTo(self);
-    SP_tower_circle2:setVisible(true);
+    SP_tower_circle2:setVisible(false);
 	SP_tower_circle2:setScale(5);
 	
 	--"你"叠放层次之上低
 	local SP_u_up1=display.newSprite("#65-1.png");--也可以用来创建Sprite
 	SP_u_up1:align(display.CENTER, screenW/2, screenH/2);
 	SP_u_up1:addTo(self);
-	SP_u_up1:setVisible(true);
+	SP_u_up1:setVisible(false);
 	SP_u_up1:setScale(3);
 	
 	--:"我"低叠放层次
 	local SP_I_up=display.newSprite("#65-1.png");--也可以用来创建Sprite
 	SP_I_up:align(display.CENTER, screenW/2, screenH/2);
 	SP_I_up:addTo(self);
-	SP_I_up:setVisible(true);
+	SP_I_up:setVisible(false);
 	SP_I_up:setScale(3);
 	
 	--"你"叠放层次之上高
 	local SP_u_up2=display.newSprite("#65-1.png");--也可以用来创建Sprite
 	SP_u_up2:align(display.CENTER, screenW/2, screenH/2);
 	SP_u_up2:addTo(self);
-	SP_u_up2:setVisible(true);
+	SP_u_up2:setVisible(false);
 	SP_u_up2:setScale(3);
 	
 	-- 小车=小兵：(包含血条)
 	local SP_car1=display.newSprite("img/game/car1.png");
     SP_car1:align(display.CENTER, screenW/2+car1_midXmid, screenH/2+car1_midYmid);
     SP_car1:addTo(self);
-    SP_car1:setVisible(true);
+    SP_car1:setVisible(false);
 	SP_car1:setScale(3);
 	
 	local SP_car1_life_=display.newSprite("img/game/life_.png");
     SP_car1_life_:align(display.CENTER, screenW/2+car1_midXmid, screenH/2+car1_midYmid+80);
     SP_car1_life_:addTo(self);
-    SP_car1_life_:setVisible(true);
+    SP_car1_life_:setVisible(false);
 	
 	local SP_car1_life=display.newSprite("img/game/life1.png");
     SP_car1_life:align(display.CENTER, screenW/2+car1_midXmid-130*(100-car1_life)/200, screenH/2+car1_midYmid+80);
     SP_car1_life:addTo(self);
-    SP_car1_life:setVisible(true);
+    SP_car1_life:setVisible(false);
 	SP_car1_life:setScaleX(13*car1_life/100);
 	SP_car1_life:setScaleY(0.4);
 	
 	local SP_car2=display.newSprite("img/game/car2.png");
     SP_car2:align(display.CENTER, screenW/2+car2_midXmid, screenH/2+car2_midYmid);
     SP_car2:addTo(self);
-    SP_car2:setVisible(true);
+    SP_car2:setVisible(false);
 	SP_car2:setScale(3);
 	
 	local SP_car2_life_=display.newSprite("img/game/life_.png");
     SP_car2_life_:align(display.CENTER, screenW/2+car2_midXmid, screenH/2+car2_midYmid+80);
     SP_car2_life_:addTo(self);
-    SP_car2_life_:setVisible(true);
+    SP_car2_life_:setVisible(false);
 	
 	local SP_car2_life=display.newSprite("img/game/life2.png");
     SP_car2_life:align(display.CENTER, screenW/2+car2_midXmid-130*(100-car2_life)/200, screenH/2+car2_midYmid+80);
     SP_car2_life:addTo(self);
-    SP_car2_life:setVisible(true);
+    SP_car2_life:setVisible(false);
 	SP_car2_life:setScaleX(13*car2_life/100);
 	SP_car2_life:setScaleY(0.4);
 	
@@ -147,36 +204,36 @@ function MainScene:ctor()
 	local SP_tower1=display.newSprite("img/game/tower1.png");
     SP_tower1:align(display.CENTER, screenW/2-1200, screenH/2-280);
     SP_tower1:addTo(self);
-    SP_tower1:setVisible(true);
+    SP_tower1:setVisible(false);
 	
 	local SP_tower1_life_=display.newSprite("img/game/life_.png");
     SP_tower1_life_:align(display.CENTER, screenW/2-1200, screenH/2-280+80);
     SP_tower1_life_:addTo(self);
-    SP_tower1_life_:setVisible(true);
+    SP_tower1_life_:setVisible(false);
 	SP_tower1_life_:setScaleY(2);
 	
 	local SP_tower1_life=display.newSprite("img/game/life1.png");
     SP_tower1_life:align(display.CENTER, screenW/2-1200-130*(100-tower1_life)/200, screenH/2-280+80);
     SP_tower1_life:addTo(self);
-    SP_tower1_life:setVisible(true);
+    SP_tower1_life:setVisible(false);
 	SP_tower1_life:setScaleX(13*tower1_life/100);
 	SP_tower1_life:setScaleY(0.8);
 	
 	local SP_tower2=display.newSprite("img/game/tower2.png");
     SP_tower2:align(display.CENTER, screenW/2+1200, screenH/2-280);
     SP_tower2:addTo(self);
-    SP_tower2:setVisible(true);
+    SP_tower2:setVisible(false);
 	
 	local SP_tower2_life_=display.newSprite("img/game/life_.png");
     SP_tower2_life_:align(display.CENTER, screenW/2+1200, screenH/2-280+80);
     SP_tower2_life_:addTo(self);
-    SP_tower2_life_:setVisible(true);
+    SP_tower2_life_:setVisible(false);
 	SP_tower2_life_:setScaleY(2);
 	
 	local SP_tower2_life=display.newSprite("img/game/life2.png");
     SP_tower2_life:align(display.CENTER, screenW/2+1200-130*(100-tower2_life)/200, screenH/2-280+80);
     SP_tower2_life:addTo(self);
-    SP_tower2_life:setVisible(true);
+    SP_tower2_life:setVisible(false);
 	SP_tower2_life:setScaleX(13*tower2_life/100);
 	SP_tower2_life:setScaleY(0.8);
 	
@@ -184,34 +241,40 @@ function MainScene:ctor()
 	local SP_u_down1=display.newSprite("#65-1.png");--也可以用来创建Sprite
 	SP_u_down1:align(display.CENTER, screenW/2, screenH/2);
 	SP_u_down1:addTo(self);
-	SP_u_down1:setVisible(true);
+	SP_u_down1:setVisible(false);
 	SP_u_down1:setScale(3);
 	
 	--:"我"高叠放层次
 	local SP_I_down=display.newSprite("#65-1.png");--也可以用来创建Sprite
 	SP_I_down:align(display.CENTER, screenW/2, screenH/2);
 	SP_I_down:addTo(self);
-	SP_I_down:setVisible(true);
+	SP_I_down:setVisible(false);
 	SP_I_down:setScale(3);
 	
 	--"你"叠放层次之下高
 	local SP_u_down2=display.newSprite("#65-1.png");--也可以用来创建Sprite
 	SP_u_down2:align(display.CENTER, screenW/2, screenH/2);
 	SP_u_down2:addTo(self);
-	SP_u_down2:setVisible(true);
+	SP_u_down2:setVisible(false);
 	SP_u_down2:setScale(3);
+	
+	--game前背景：
+	local SP_background0=display.newSprite("img/game/BG0.png");
+    SP_background0:align(display.CENTER, screenW/2, screenH/2);
+    SP_background0:addTo(self);
+    SP_background0:setVisible(false);
 	
 	--:你的血条，叠放层次仅次于我的血条
 	local SP_u_life_=display.newSprite("img/game/life_.png");
     SP_u_life_:align(display.CENTER, screenW/2, screenH/2+160);
     SP_u_life_:addTo(self);
-    SP_u_life_:setVisible(true);
+    SP_u_life_:setVisible(false);
 	SP_u_life_:setScaleY(2);
 	
 	local SP_u_life=display.newSprite("img/game/life2.png");
     SP_u_life:align(display.CENTER, screenW/2-130*(100-u_life)/200, screenH/2+160);
     SP_u_life:addTo(self);
-    SP_u_life:setVisible(true);
+    SP_u_life:setVisible(false);
 	SP_u_life:setScaleX(13*u_life/100);
 	SP_u_life:setScaleY(0.8);
 	
@@ -219,13 +282,13 @@ function MainScene:ctor()
 	local SP_I_life_=display.newSprite("img/game/life_.png");
     SP_I_life_:align(display.CENTER, screenW/2, screenH/2+160);
     SP_I_life_:addTo(self);
-    SP_I_life_:setVisible(true);
+    SP_I_life_:setVisible(false);
 	SP_I_life_:setScaleY(2);
 	
 	local SP_I_life=display.newSprite("img/game/life1.png");
     SP_I_life:align(display.CENTER, screenW/2-130*(100-I_life)/200, screenH/2+160);
     SP_I_life:addTo(self);
-    SP_I_life:setVisible(true);
+    SP_I_life:setVisible(false);
 	SP_I_life:setScaleX(13*I_life/100);
 	SP_I_life:setScaleY(0.8);
 	
@@ -233,25 +296,60 @@ function MainScene:ctor()
 	local SP_YaoGanBig=display.newSprite("img/game/YaoGanBig0.png");
     SP_YaoGanBig:align(display.CENTER, screenW/2+button_move_midXmid, screenH/2+button_move_midYmid);
     SP_YaoGanBig:addTo(self);
-    SP_YaoGanBig:setVisible(true);
+    SP_YaoGanBig:setVisible(false);
 	
 	local SP_YaoGanSmall=display.newSprite("img/game/YaoGanSmall0.png");
     SP_YaoGanSmall:align(display.CENTER, screenW/2+button_move_midXmid, screenH/2+button_move_midYmid);
     SP_YaoGanSmall:addTo(self);
-    SP_YaoGanSmall:setVisible(true);
+    SP_YaoGanSmall:setVisible(false);
 	
 	--attack按钮:
 	local SP_attack1=display.newSprite("img/game/YaoGanSmall0.png");
     SP_attack1:align(display.CENTER, screenW/2+button_attack1_midXmid, screenH/2+button_attack1_midYmid);
     SP_attack1:addTo(self);
-    SP_attack1:setVisible(true);
+    SP_attack1:setVisible(false);
 	
 	local SP_attack2=display.newSprite("img/game/YaoGanSmall0.png");
     SP_attack2:align(display.CENTER, screenW/2+button_attack2_midXmid, screenH/2+button_attack2_midYmid);
     SP_attack2:addTo(self);
-    SP_attack2:setVisible(true);
-	
+    SP_attack2:setVisible(false);
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
 	--debug提示字：
+	--[[
 	local s="";
 	local ZI_= cc.ui.UILabel.new({
             UILabelType = 2,
@@ -263,6 +361,7 @@ function MainScene:ctor()
     ZI_:addTo(self);
     ZI_:setVisible(true);
     ZI_:setString(s);
+	]]--
 	--人物动画：
     --[图片命名为1~8 :%d]or[图片命名为01~08 :%02d]&&[图片1~8]=[1,8]&&[图片9~16]=[9（起始）,8（长度）]
 	--行走：
@@ -275,7 +374,6 @@ function MainScene:ctor()
 	local animation_XingZou_top=display.newAnimation(display.newFrames("%d-1.png",65+40,8),0.02);--时间间隔0.02
 	local animation_XingZou_lefttop=display.newAnimation(display.newFrames("%d-1.png",65+48,8),0.02);--时间间隔0.02
 	local animation_XingZou_left=display.newAnimation(display.newFrames("%d-1.png",65+56,8),0.02);--时间间隔0.02
-	]]--
 	--疗伤手势：
 	local animation_LiaoShang_leftdown=display.newAnimation(display.newFrames("%d-1.png",257,8),0.02);--时间间隔0.02
 	local animation_LiaoShang_down=display.newAnimation(display.newFrames("%d-1.png",257+8,8),0.02);--时间间隔0.02
@@ -304,7 +402,7 @@ function MainScene:ctor()
 	local animation_ZhiQuan_lefttop=display.newAnimation(display.newFrames("%d-1.png",777+60,8),0.02);--时间间隔0.02
 	local animation_ZhiQuan_left=display.newAnimation(display.newFrames("%d-1.png",777+70,8),0.02);--时间间隔0.02
 	--人物动画end
-	
+	]]--
 	
 	
 	
@@ -315,6 +413,41 @@ function MainScene:ctor()
 	self:setCameraMask(2);
 	camera:setPositionX(0); 
 	camera:setPositionY(0);
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
     --【监听】
     local MoveDown=false;
 	--one node 双触：
@@ -322,6 +455,7 @@ function MainScene:ctor()
 	self:setTouchMode(cc.TOUCH_MODE_ALL_AT_ONCE);
 	self:addNodeEventListener(cc.NODE_TOUCH_EVENT,function ( event )
 	    
+	if caser==2 then	
 	    if event.name=="began" --第一个begin（第一个点）
 		or event.name=="added" then--第二个begin(全部的点)
 	        --print("began");s=s.."begin\n";ZI_:setString(s);
@@ -330,8 +464,18 @@ function MainScene:ctor()
 				--如果begin点中了move按钮:----------------------------------------------
 				if math.abs(point.x-screenW/2-button_move_midXmid)<button_move_R
 				and math.abs(point.y-screenH/2-button_move_midYmid)<button_move_R then
-					MoveDown=true;move_dir=0;
+					MoveDown=true;
+					client_move_dir=0;
 					print("movedown=true");
+				end;
+				-------------------------------------------------------------------------
+				---------点击[攻击1按钮]-------------------------------------------------------------
+				if math.abs(point.x-screenW/2-button_attack1_midXmid)<button_attack1_R
+				and math.abs(point.y-screenH/2-button_attack1_midYmid)<button_attack1_R then
+					--if ismoving==false then
+					  --  ismoving=true;
+						socket:send(ByteArray.new():writeString("F}"):getPack());
+			        --end;
 				end;
 				-------------------------------------------------------------------------
 		    end
@@ -346,7 +490,8 @@ function MainScene:ctor()
 				local x_= math.abs(point.x-screenW/2-button_move_midXmid);
 				local y_= math.abs(point.y-screenH/2-button_move_midYmid);
 				if point.x<screenW/2 and MoveDown==true then-- 左边
-					MoveDown=false;move_dir=0;
+					MoveDown=false;
+					client_move_dir=0;
 			        print("movedown=false");
 			        local firstX=screenW/2+button_move_midXmid;
                     local firstY=screenH/2+button_move_midYmid;
@@ -366,7 +511,8 @@ function MainScene:ctor()
 				if 1==1 
 				and point.x>screenW/2 --屏幕右边：松开
 				and MoveDown==true then
-					MoveDown=false;move_dir=0;
+					MoveDown=false;
+					client_move_dir=0;
 					print("movedown=false");
 					local firstX=screenW/2+button_move_midXmid;
                     local firstY=screenH/2+button_move_midYmid;
@@ -392,38 +538,38 @@ function MainScene:ctor()
 				    local yy= point.y-(screenH/2+button_move_midYmid);
 					if xx>=0 and yy>=0 then
 					    if x_/y_<0.5 then
-							move_dir=1;
+							client_move_dir=1;
 						elseif y_/x_<0.5 then
-							move_dir=3;
+							client_move_dir=3;
 						else
-						    move_dir=2;
+						    client_move_dir=2;
 						end;
 					end;
 					if xx>=0 and yy<=0 then
 					    if x_/y_<0.5 then
-						    move_dir=5;
+						    client_move_dir=5;
 						elseif y_/x_<0.5 then
-						    move_dir=3;
+						    client_move_dir=3;
 						else
-						    move_dir=4;
+						    client_move_dir=4;
 						end;
 					end;
 					if xx<=0 and yy<=0 then
 					    if x_/y_<0.5 then
-						    move_dir=5;
+						    client_move_dir=5;
 						elseif y_/x_<0.5 then
-						    move_dir=7;
+						    client_move_dir=7;
 						else
-						    move_dir=6;
+						    client_move_dir=6;
 						end;
 					end;
 					if xx<=0 and yy>=0 then
 					    if x_/y_<0.5 then
-						    move_dir=1;
+						    client_move_dir=1;
 						elseif y_/x_<0.5 then
-						    move_dir=7;
+						    client_move_dir=7;
 						else
-						    move_dir=8;
+						    client_move_dir=8;
 						end;
 					end;
 				end;
@@ -431,7 +577,8 @@ function MainScene:ctor()
 		    end
 			return true;
 	    end; 
-    end);
+	end;--caser==2 end
+    end);--监听end
 
     --[[
 	SP_button_giveup:setTouchEnabled(true);
@@ -441,19 +588,1250 @@ function MainScene:ctor()
 	    end;  
     end);
 	]]--
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+    --【function】
+local function closecaserall()--【】【】
+    caser=0;
+    --find game 背景：
+    SP_BG_findgame:setVisible(false);
+    SP_BG_findgameZI:setVisible(false);
+    --------------caser分割线-------------------------
+	--game背景：
+    SP_background3:setVisible(false);
+    SP_background2:setVisible(false);
+    SP_background1:setVisible(false);
+    SP_background0:setVisible(false);
+	--:防御塔的攻击范围：
+    SP_tower_circle1:setVisible(false);
+    SP_tower_circle2:setVisible(false);
+	--"你"叠放层次之上低
+	SP_u_up1:setVisible(false);
+	--:"我"低叠放层次
+	SP_I_up:setVisible(false);
+	--"你"叠放层次之上高
+	SP_u_up2:setVisible(false);
+	-- 小车=小兵：(包含血条)
+    SP_car1:setVisible(false);
+    SP_car1_life_:setVisible(false);
+    SP_car1_life:setVisible(false);
+    SP_car2:setVisible(false);
+    SP_car2_life_:setVisible(false);
+    SP_car2_life:setVisible(false);
+	--:防御塔：(包含血条)
+    SP_tower1:setVisible(false);
+    SP_tower1_life_:setVisible(false);
+    SP_tower1_life:setVisible(false);
+    SP_tower2:setVisible(false);
+    SP_tower2_life_:setVisible(false);
+    SP_tower2_life:setVisible(false);
+	--"你"叠放层次之下低
+	SP_u_down1:setVisible(false);
+	--:"我"高叠放层次
+	SP_I_down:setVisible(false);
+	--"你"叠放层次之下高
+	SP_u_down2:setVisible(false);
+	--:你的血条
+    SP_u_life_:setVisible(false);
+    SP_u_life:setVisible(false);
+	--:我的血条
+    SP_I_life_:setVisible(false);
+    SP_I_life:setVisible(false);
+	--摇杆：
+    SP_YaoGanBig:setVisible(false);
+    SP_YaoGanSmall:setVisible(false);
+    SP_attack1:setVisible(false);
+    SP_attack2:setVisible(false);
+end;
+local function opencaser1()--【】【】
+    caser=1;
+    --find game 背景：
+    SP_BG_findgame:setVisible(true);
+    SP_BG_findgameZI:setVisible(true);
+end;
+local function opencaser2()--【】【】
+    caser=2;
+	--===============================================================================================
+					--游戏初始化：
+					I_midXmid=-1000;
+	                I_midYmid=0;
+	                I_life=100;
+	                u_midXmid=1000;
+	                u_midYmid=0;
+	                u_life=100;
+	                car1_midXmid=-1100;
+	                car1_midYmid=-280;
+	                car1_life=100;
+	                car2_midXmid=1100;
+	                car2_midYmid=-280;
+	                car2_life=100;
+	                tower1_life=100;
+	                tower2_life=100;
+	                move_dir=0;
+	                attack_dir=3;
+	                u_move_dir=0;
+	                u_attack_dir=3;
+					camera_midXmid=-1000;
+	                camera_midYmid=0;
+					if sofa==2 then
+					    I_midXmid=1000;
+						camera_midXmid=1000;
+	                    u_midXmid=-1000;
+                        SP_car1_life:setSpriteFrame(cc.SpriteFrameCache:getInstance():getSpriteFrame("life2.png"));					
+                        SP_car2_life:setSpriteFrame(cc.SpriteFrameCache:getInstance():getSpriteFrame("life1.png"));	
+                        SP_tower1_life:setSpriteFrame(cc.SpriteFrameCache:getInstance():getSpriteFrame("life2.png"));					
+                        SP_tower2_life:setSpriteFrame(cc.SpriteFrameCache:getInstance():getSpriteFrame("life1.png"));						
+					end;
+					SP_attack1:align(display.CENTER, screenW/2+button_attack1_midXmid+camera_midXmid, 
+			                                   screenH/2+button_attack1_midYmid+camera_midYmid);
+			        SP_attack2:align(display.CENTER, screenW/2+button_attack2_midXmid+camera_midXmid, 
+			                                   screenH/2+button_attack2_midYmid+camera_midYmid);
+			        SP_YaoGanBig:align(display.CENTER, screenW/2+button_move_midXmid+camera_midXmid, 
+			                                   screenH/2+button_move_midYmid+camera_midYmid);
+			        SP_YaoGanSmall:align(display.CENTER, movepoint_x+camera_midXmid,movepoint_y+camera_midYmid);
+					camera:setPositionX(camera_midXmid); 
+					SP_I_up:align(display.CENTER, screenW/2+I_midXmid, screenH/2+I_midYmid);
+					SP_I_down:align(display.CENTER, screenW/2+I_midXmid, screenH/2+I_midYmid);
+					SP_u_up1:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid);
+			        SP_u_up2:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid);
+			        SP_u_down1:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid);
+			        SP_u_down2:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid);
+	--===============================================================================================
+	--game背景：
+    SP_background3:setVisible(true);
+    SP_background2:setVisible(true);
+    SP_background1:setVisible(true);
+    SP_background0:setVisible(true);
+	--:防御塔的攻击范围：
+    SP_tower_circle1:setVisible(true);
+    SP_tower_circle2:setVisible(true);
+	--"你"叠放层次之上低
+	SP_u_up1:setVisible(true);
+	--:"我"低叠放层次
+	SP_I_up:setVisible(true);
+	--"你"叠放层次之上高
+	SP_u_up2:setVisible(true);
+	-- 小车=小兵：(包含血条)
+    SP_car1:setVisible(true);
+    SP_car1_life_:setVisible(true);
+    SP_car1_life:setVisible(true);
+    SP_car2:setVisible(true);
+    SP_car2_life_:setVisible(true);
+    SP_car2_life:setVisible(true);
+	--:防御塔：(包含血条)
+    SP_tower1:setVisible(true);
+    SP_tower1_life_:setVisible(true);
+    SP_tower1_life:setVisible(true);
+    SP_tower2:setVisible(true);
+    SP_tower2_life_:setVisible(true);
+    SP_tower2_life:setVisible(true);
+	--"你"叠放层次之下低
+	SP_u_down1:setVisible(true);
+	--:"我"高叠放层次
+	SP_I_down:setVisible(true);
+	--"你"叠放层次之下高
+	SP_u_down2:setVisible(true);
+	--:你的血条
+    SP_u_life_:setVisible(true);
+    SP_u_life:setVisible(true);
+	--:我的血条
+    SP_I_life_:setVisible(true);
+    SP_I_life:setVisible(true);
+	--摇杆：
+    SP_YaoGanBig:setVisible(true);
+    SP_YaoGanSmall:setVisible(true);
+    SP_attack1:setVisible(true);
+    SP_attack2:setVisible(true);
+end;
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+local function makesocket()--【】【】
+	--print(os.date("%c"))
+    --------------------------------------------------------------
+	socket = SocketTCP.new("47.107.148.147",54321,false)--ALiYun1
+	--socket = SocketTCP.new("106.14.181.7",54321,false)--ALiYun2
+	--socket = SocketTCP.new("www.ququking.top",54321,false)--ALiYun2
+	--socket = SocketTCP.new("localhost",54321,false)
+	con_ok=true--客户端心跳检测{1/3}
+    nettydata=""
+    local function onStatues(event)--【】【】
+	    if event.name == SocketTCP.EVENT_DATA then
+		    --print(event.data)
+			nettydata=nettydata .. event.data
+			if string.sub(nettydata,string.len(nettydata),string.len(nettydata))=="}" then
+			
+            --print("-------------------------------------get--------------------------------------")
+			--print(event.data)
+            con_ok=true--客户端心跳检测{2/3}
+			getdata=split(nettydata,"}")
+			nettydata=""
+			--print("sum:[".. table.getn(getdata) .."]")
+			for i0=1,table.getn(getdata),1 do
+			    if string.sub(getdata[i0],1,1)== "2" then
+				    --断开连接
+					socket:close()
+			        cc.Director:getInstance():getScheduler():unscheduleScriptEntry(schedulerID1)
+					print("账号或密码错误")
+			        print(type(scheduler1))
+					local newScene = import("app.scenes.HomeScene"):new()
+                    display.replaceScene(newScene,"crossFade",0,0)
+				end
+				if string.sub(getdata[i0],1,1)== "q" then
+				    --获取去掉开头的部分:
+				    local s1=string.sub(getdata[i0],2,string.len(getdata[i0]))
+					--
+					print("q "..s1)
+					BY_qiang[tonumber(string.sub(s1,2,2))]=tonumber(string.sub(s1,1,1))
+				end
+				if string.sub(getdata[i0],1,1)== "L" then--大帧同步
+				    --获取去掉开头的部分:
+				    local s1=string.sub(getdata[i0],2,string.len(getdata[i0]))
+					local gets=split(s1,"~");
+					local person1X=tonumber(gets[1]);
+					local person1Y=tonumber(gets[2]);
+					local person1life=tonumber(gets[3]);
+					local person2X=tonumber(gets[4]);
+					local person2Y=tonumber(gets[5]);
+					local person2life=tonumber(gets[6]);
+					local car1X=tonumber(gets[7]);
+					local car1Y=tonumber(gets[8]);
+					local car1life=tonumber(gets[9]);
+					local car2X=tonumber(gets[10]);
+					local car2Y=tonumber(gets[11]);
+					local car2life=tonumber(gets[12]);
+					if sofa==1 then
+					    I_midXmid=person1X;
+						I_midYmid=person1Y;
+						I_life=person1life;
+						u_midXmid=person2X;
+						u_midYmid=person2Y;
+						u_life=person2life;
+						car1_midXmid=car1X;
+						car1_midYmid=car1Y;
+						car1_life=car1life;
+						car2_midXmid=car2X;
+						car2_midYmid=car2Y;
+						car2_life=car2life;
+					end;
+					if sofa==2 then
+					    I_midXmid=person2X;
+						I_midYmid=person2Y;
+						I_life=person2life;
+						u_midXmid=person1X;
+						u_midYmid=person1Y;
+						u_life=person1life;
+						car1_midXmid=car1X;
+						car1_midYmid=car1Y;
+						car1_life=car1life;
+						car2_midXmid=car2X;
+						car2_midYmid=car2Y;
+						car2_life=car2life;
+					end;
+				end;
+				if string.sub(getdata[i0],1,1)== "K" then--获取主要节点visible的改变
+				    --获取去掉开头的部分:
+				    local s1=string.sub(getdata[i0],2,string.len(getdata[i0]))
+					local gets=split(s1,"~");
+					local get_fromsofa=tonumber(gets[1]);
+					local get_tower_I_car=tonumber(gets[2]);
+					local get_TrueFalse=tonumber(gets[3]);
+					if get_fromsofa==sofa then--我的人
+					    if get_tower_I_car==3 then--car
+						    if get_TrueFalse==1 then--true
+							    if sofa==1 then--我在sofa1=左边
+							        SP_car1:setVisible(true);
+							        SP_car1_life:setVisible(true);
+							        SP_car1_life_:setVisible(true);
+								end;
+								if sofa==2 then
+							        SP_car2:setVisible(true);
+							        SP_car2_life:setVisible(true);
+							        SP_car2_life_:setVisible(true);
+								end;
+							else
+							    if sofa==1 then
+							        SP_car1:setVisible(false);
+							        SP_car1_life:setVisible(false);
+							        SP_car1_life_:setVisible(false);
+								end;
+								if sofa==2 then
+							        SP_car2:setVisible(false);
+							        SP_car2_life:setVisible(false);
+							        SP_car2_life_:setVisible(false);
+								end;
+							end;
+						end;
+					end;
+					if get_fromsofa~=sofa then--对手的人
+					    if get_tower_I_car==3 then
+						    if get_TrueFalse==1 then--true
+							    if sofa==1 then--我在sofa1=左边
+							        SP_car2:setVisible(true);
+							        SP_car2_life:setVisible(true);
+							        SP_car2_life_:setVisible(true);
+								end;
+								if sofa==2 then
+							        SP_car1:setVisible(true);
+							        SP_car1_life:setVisible(true);
+							        SP_car1_life_:setVisible(true);
+								end;
+							else
+							    if sofa==1 then
+							        SP_car2:setVisible(false);
+							        SP_car2_life:setVisible(false);
+							        SP_car2_life_:setVisible(false);
+								end;
+								if sofa==2 then
+							        SP_car1:setVisible(false);
+							        SP_car1_life:setVisible(false);
+							        SP_car1_life_:setVisible(false);
+								end;
+							end;
+						end;
+					end;
+				end;
+				if string.sub(getdata[i0],1,1)== "D" then--对手的移动方向[0~8]
+				    --获取去掉开头的部分:
+				    local s1=string.sub(getdata[i0],2,string.len(getdata[i0]))
+					--print("D s1=".. s1);
+					local gets=split(s1,"~");
+					local get_dir=tonumber(gets[1]);
+					--print("get_dir:".. get_dir);
+					local get_fromsofa=tonumber(gets[2]);
+					--print("get_fromsofa:".. get_fromsofa);
+					if get_fromsofa==sofa then
+					    move_dir=get_dir;
+                        if move_dir~=0 then
+					        attack_dir=move_dir;
+					    end;
+					end;
+					if get_fromsofa~=sofa then
+					    u_move_dir=get_dir;
+                        if u_move_dir~=0 then
+					        u_attack_dir=u_move_dir;
+					    end;
+					end;
+				end;
+				if string.sub(getdata[i0],1,1)== "F" then--对手攻击
+				    --获取去掉开头的部分:
+				    local s1=string.sub(getdata[i0],2,string.len(getdata[i0]))
+					local who=tonumber(s1);
+					--print("who:".. who);
+					--print("sofa:".. sofa);
+					if who==sofa then
+					if ismoving==false then
+					    ismoving=true;
+				        ----【I打car2||I打car1||I打u：begin】
+						--必定是8个方向中的一个，必定执行动画，必定ismoving->false
+						if attack_dir==1 then
+						    ----------------------------------------------------------------------------------------------
+						    local animation_ZhiQuan_top=display.newAnimation(display.newFrames("%d-1.png",777+50,8),0.08);
+			                SP_I_up:playAnimationOnce(animation_ZhiQuan_top,false,function() ismoving=false; end,0);
+			                SP_I_down:playAnimationOnce(animation_ZhiQuan_top,false,function() ismoving=false; end,0);
+							---------------------------------------------------------------------------------------------
+							local x_=math.abs(I_midXmid-car2_midXmid);
+							local y_=math.abs(I_midYmid-45-car2_midYmid);
+							if x_*x_+y_*y_<200*200 and car2_midYmid>I_midYmid-45 and y_/x_>2 then
+							    car2_life=car2_life-10;
+								if car2_life<0 then
+								    car2_life=0;
+								end;
+							end;
+							---------------------------------------------------------------------------------------------
+							local x_=math.abs(I_midXmid-car1_midXmid);
+							local y_=math.abs(I_midYmid-45-car1_midYmid);
+							if x_*x_+y_*y_<200*200 and car1_midYmid>I_midYmid-45 and y_/x_>2 then
+							    car1_life=car1_life-10;
+								if car1_life<0 then
+								    car1_life=0;
+								end;
+							end;
+							----------------------------------------------------------------------------------------------
+							local x_=math.abs(I_midXmid-u_midXmid);
+							local y_=math.abs(I_midYmid-u_midYmid);
+							if x_*x_+y_*y_<200*200 and u_midYmid>I_midYmid and y_/x_>2 then
+							    u_life=u_life-10;
+								if u_life<0 then
+								    u_life=0;
+								end;
+							end;
+							----------------------------------------------------------------------------------------------
+						end;
+						if attack_dir==2 then
+						    ----------------------------------------------------------------------------------------------
+						    local animation_ZhiQuan_righttop=display.newAnimation(display.newFrames("%d-1.png",777+40,8),0.08);
+			                SP_I_up:playAnimationOnce(animation_ZhiQuan_righttop,false,function() ismoving=false; end,0);
+			                SP_I_down:playAnimationOnce(animation_ZhiQuan_righttop,false,function() ismoving=false; end,0);
+							----------------------------------------------------------------------------------------------
+							local x_=math.abs(I_midXmid-car2_midXmid);
+							local y_=math.abs(I_midYmid-45-car2_midYmid);
+							if x_*x_+y_*y_<200*200 
+							and car2_midYmid>I_midYmid-45 and car2_midXmid>I_midXmid 
+							and y_/x_<2 and y_/x_>0.5 then
+							    car2_life=car2_life-10;
+								if car2_life<0 then
+								    car2_life=0;
+								end;
+							end;
+							----------------------------------------------------------------------------------------------
+							local x_=math.abs(I_midXmid-car1_midXmid);
+							local y_=math.abs(I_midYmid-45-car1_midYmid);
+							if x_*x_+y_*y_<200*200 
+							and car1_midYmid>I_midYmid-45 and car1_midXmid>I_midXmid 
+							and y_/x_<2 and y_/x_>0.5 then
+							    car1_life=car1_life-10;
+								if car1_life<0 then
+								    car1_life=0;
+								end;
+							end;
+							----------------------------------------------------------------------------------------------
+							local x_=math.abs(I_midXmid-u_midXmid);
+							local y_=math.abs(I_midYmid-u_midYmid);
+							if x_*x_+y_*y_<200*200 
+							and u_midYmid>I_midYmid and u_midXmid>I_midXmid 
+							and y_/x_<2 and y_/x_>0.5 then
+							    u_life=u_life-10;
+								if u_life<0 then
+								    u_life=0;
+								end;
+							end;
+							----------------------------------------------------------------------------------------------
+						end;
+						if attack_dir==3 then
+						    ----------------------------------------------------------------------------------------------
+						    local animation_ZhiQuan_right=display.newAnimation(display.newFrames("%d-1.png",777+30,8),0.08);
+			                SP_I_up:playAnimationOnce(animation_ZhiQuan_right,false,function() ismoving=false; end,0);
+			                SP_I_down:playAnimationOnce(animation_ZhiQuan_right,false,function() ismoving=false; end,0);
+							----------------------------------------------------------------------------------------------
+							local x_=math.abs(I_midXmid-car2_midXmid);
+							local y_=math.abs(I_midYmid-45-car2_midYmid);
+							if x_*x_+y_*y_<200*200 and car2_midXmid>I_midXmid and y_/x_<0.5 then
+							    car2_life=car2_life-10;
+								if car2_life<0 then
+								    car2_life=0;
+								end;
+							end;
+							----------------------------------------------------------------------------------------------
+							local x_=math.abs(I_midXmid-car1_midXmid);
+							local y_=math.abs(I_midYmid-45-car1_midYmid);
+							if x_*x_+y_*y_<200*200 and car1_midXmid>I_midXmid and y_/x_<0.5 then
+							    car1_life=car1_life-10;
+								if car1_life<0 then
+								    car1_life=0;
+								end;
+							end;
+							----------------------------------------------------------------------------------------------
+							local x_=math.abs(I_midXmid-u_midXmid);
+							local y_=math.abs(I_midYmid-u_midYmid);
+							if x_*x_+y_*y_<200*200 and u_midXmid>I_midXmid and y_/x_<0.5 then
+							    u_life=u_life-10;
+								if u_life<0 then
+								    u_life=0;
+								end;
+							end;
+							----------------------------------------------------------------------------------------------
+						end;
+						if attack_dir==4 then
+						    ----------------------------------------------------------------------------------------------
+						    local animation_ZhiQuan_rightdown=display.newAnimation(display.newFrames("%d-1.png",777+20,8),0.08);
+			                SP_I_up:playAnimationOnce(animation_ZhiQuan_rightdown,false,function() ismoving=false; end,0);
+			                SP_I_down:playAnimationOnce(animation_ZhiQuan_rightdown,false,function() ismoving=false; end,0);
+							----------------------------------------------------------------------------------------------
+							local x_=math.abs(I_midXmid-car2_midXmid);
+							local y_=math.abs(I_midYmid-45-car2_midYmid);
+							if x_*x_+y_*y_<200*200 
+							and car2_midYmid<I_midYmid-45 and car2_midXmid>I_midXmid 
+							and y_/x_<2 and y_/x_>0.5 then
+							    car2_life=car2_life-10;
+								if car2_life<0 then
+								    car2_life=0;
+								end;
+							end;
+							----------------------------------------------------------------------------------------------
+							local x_=math.abs(I_midXmid-car1_midXmid);
+							local y_=math.abs(I_midYmid-45-car1_midYmid);
+							if x_*x_+y_*y_<200*200 
+							and car1_midYmid<I_midYmid-45 and car1_midXmid>I_midXmid 
+							and y_/x_<2 and y_/x_>0.5 then
+							    car1_life=car1_life-10;
+								if car1_life<0 then
+								    car1_life=0;
+								end;
+							end;
+							----------------------------------------------------------------------------------------------
+							local x_=math.abs(I_midXmid-u_midXmid);
+							local y_=math.abs(I_midYmid-u_midYmid);
+							if x_*x_+y_*y_<200*200 
+							and u_midYmid<I_midYmid and u_midXmid>I_midXmid 
+							and y_/x_<2 and y_/x_>0.5 then
+							    u_life=u_life-10;
+								if u_life<0 then
+								    u_life=0;
+								end;
+							end;
+							----------------------------------------------------------------------------------------------
+						end;
+						if attack_dir==5 then
+						    ----------------------------------------------------------------------------------------------
+						    local animation_ZhiQuan_down=display.newAnimation(display.newFrames("%d-1.png",777+10,8),0.08);
+			                SP_I_up:playAnimationOnce(animation_ZhiQuan_down,false,function() ismoving=false; end,0);
+			                SP_I_down:playAnimationOnce(animation_ZhiQuan_down,false,function() ismoving=false; end,0);
+							----------------------------------------------------------------------------------------------
+							local x_=math.abs(I_midXmid-car2_midXmid);
+							local y_=math.abs(I_midYmid-45-car2_midYmid);
+							if x_*x_+y_*y_<200*200 and car2_midYmid<I_midYmid-45 and y_/x_>2 then
+							    car2_life=car2_life-10;
+								if car2_life<0 then
+								    car2_life=0;
+								end;
+							end;
+							----------------------------------------------------------------------------------------------
+							local x_=math.abs(I_midXmid-car1_midXmid);
+							local y_=math.abs(I_midYmid-45-car1_midYmid);
+							if x_*x_+y_*y_<200*200 and car1_midYmid<I_midYmid-45 and y_/x_>2 then
+							    car1_life=car1_life-10;
+								if car1_life<0 then
+								    car1_life=0;
+								end;
+							end;
+							----------------------------------------------------------------------------------------------
+							local x_=math.abs(I_midXmid-u_midXmid);
+							local y_=math.abs(I_midYmid-u_midYmid);
+							if x_*x_+y_*y_<200*200 and u_midYmid<I_midYmid and y_/x_>2 then
+							    u_life=u_life-10;
+								if u_life<0 then
+								    u_life=0;
+								end;
+							end;
+							----------------------------------------------------------------------------------------------
+						end;
+						if attack_dir==6 then
+						    ----------------------------------------------------------------------------------------------
+						    local animation_ZhiQuan_leftdown=display.newAnimation(display.newFrames("%d-1.png",777,8),0.08);
+			                SP_I_up:playAnimationOnce(animation_ZhiQuan_leftdown,false,function() ismoving=false; end,0);
+			                SP_I_down:playAnimationOnce(animation_ZhiQuan_leftdown,false,function() ismoving=false; end,0);
+							----------------------------------------------------------------------------------------------
+							local x_=math.abs(I_midXmid-car2_midXmid);
+							local y_=math.abs(I_midYmid-45-car2_midYmid);
+							if x_*x_+y_*y_<200*200 
+							and car2_midYmid<I_midYmid-45 and car2_midXmid<I_midXmid 
+							and y_/x_<2 and y_/x_>0.5 then
+							    car2_life=car2_life-10;
+								if car2_life<0 then
+								    car2_life=0;
+								end;
+							end;
+							----------------------------------------------------------------------------------------------
+							local x_=math.abs(I_midXmid-car1_midXmid);
+							local y_=math.abs(I_midYmid-45-car1_midYmid);
+							if x_*x_+y_*y_<200*200 
+							and car1_midYmid<I_midYmid-45 and car1_midXmid<I_midXmid 
+							and y_/x_<2 and y_/x_>0.5 then
+							    car1_life=car1_life-10;
+								if car1_life<0 then
+								    car1_life=0;
+								end;
+							end;
+							----------------------------------------------------------------------------------------------
+							local x_=math.abs(I_midXmid-u_midXmid);
+							local y_=math.abs(I_midYmid-u_midYmid);
+							if x_*x_+y_*y_<200*200 
+							and u_midYmid<I_midYmid and u_midXmid<I_midXmid 
+							and y_/x_<2 and y_/x_>0.5 then
+							    u_life=u_life-10;
+								if u_life<0 then
+								    u_life=0;
+								end;
+							end;
+							----------------------------------------------------------------------------------------------
+						end;
+						if attack_dir==7 then
+						    ----------------------------------------------------------------------------------------------
+						    local animation_ZhiQuan_left=display.newAnimation(display.newFrames("%d-1.png",777+70,8),0.08);
+			                SP_I_up:playAnimationOnce(animation_ZhiQuan_left,false,function() ismoving=false; end,0);
+			                SP_I_down:playAnimationOnce(animation_ZhiQuan_left,false,function() ismoving=false; end,0);
+							----------------------------------------------------------------------------------------------
+							local x_=math.abs(I_midXmid-car2_midXmid);
+							local y_=math.abs(I_midYmid-45-car2_midYmid);
+							if x_*x_+y_*y_<200*200 and car2_midXmid<I_midXmid and y_/x_<0.5 then
+							    car2_life=car2_life-10;
+								if car2_life<0 then
+								    car2_life=0;
+								end;
+							end;
+							----------------------------------------------------------------------------------------------
+							local x_=math.abs(I_midXmid-car1_midXmid);
+							local y_=math.abs(I_midYmid-45-car1_midYmid);
+							if x_*x_+y_*y_<200*200 and car1_midXmid<I_midXmid and y_/x_<0.5 then
+							    car1_life=car1_life-10;
+								if car1_life<0 then
+								    car1_life=0;
+								end;
+							end;
+							----------------------------------------------------------------------------------------------
+							local x_=math.abs(I_midXmid-u_midXmid);
+							local y_=math.abs(I_midYmid-u_midYmid);
+							if x_*x_+y_*y_<200*200 and u_midXmid<I_midXmid and y_/x_<0.5 then
+							    u_life=u_life-10;
+								if u_life<0 then
+								    u_life=0;
+								end;
+							end;
+							----------------------------------------------------------------------------------------------
+						end;
+						if attack_dir==8 then
+						    ----------------------------------------------------------------------------------------------
+						    local animation_ZhiQuan_lefttop=display.newAnimation(display.newFrames("%d-1.png",777+60,8),0.08);
+			                SP_I_up:playAnimationOnce(animation_ZhiQuan_lefttop,false,function() ismoving=false; end,0);
+			                SP_I_down:playAnimationOnce(animation_ZhiQuan_lefttop,false,function() ismoving=false; end,0);
+							----------------------------------------------------------------------------------------------
+							local x_=math.abs(I_midXmid-car2_midXmid);
+							local y_=math.abs(I_midYmid-45-car2_midYmid);
+							if x_*x_+y_*y_<200*200 
+							and car2_midYmid>I_midYmid-45 and car2_midXmid<I_midXmid 
+							and y_/x_<2 and y_/x_>0.5 then
+							    car2_life=car2_life-10;
+								if car2_life<0 then
+								    car2_life=0;
+								end;
+							end;
+							----------------------------------------------------------------------------------------------
+							local x_=math.abs(I_midXmid-car1_midXmid);
+							local y_=math.abs(I_midYmid-45-car1_midYmid);
+							if x_*x_+y_*y_<200*200 
+							and car1_midYmid>I_midYmid-45 and car1_midXmid<I_midXmid 
+							and y_/x_<2 and y_/x_>0.5 then
+							    car1_life=car1_life-10;
+								if car1_life<0 then
+								    car1_life=0;
+								end;
+							end;
+							----------------------------------------------------------------------------------------------
+							local x_=math.abs(I_midXmid-u_midXmid);
+							local y_=math.abs(I_midYmid-u_midYmid);
+							if x_*x_+y_*y_<200*200 
+							and u_midYmid>I_midYmid and u_midXmid<I_midXmid 
+							and y_/x_<2 and y_/x_>0.5 then
+							    u_life=u_life-10;
+								if u_life<0 then
+								    u_life=0;
+								end;
+							end;
+							----------------------------------------------------------------------------------------------
+						end;
+						----【I打car2||I打car1||I打u：end】
+					end;--ismoving
+					end;--who==sofa
+					if who~=sofa then
+				    if u_ismoving==false then
+					    u_ismoving=true;
+						----【u打car2||u打car1||u打I：begin】
+						--必定是8个方向中的一个，必定执行动画，必定u_ismoving->false
+						if u_attack_dir==1 then
+						    ----------------------------------------------------------------------------------------------
+						    local animation_ZhiQuan_top=display.newAnimation(display.newFrames("%d-1.png",777+50,8),0.08);
+			                SP_u_up1:playAnimationOnce(animation_ZhiQuan_top,false,function() u_ismoving=false; end,0);
+			                SP_u_up2:playAnimationOnce(animation_ZhiQuan_top,false,function() u_ismoving=false; end,0);
+			                SP_u_down1:playAnimationOnce(animation_ZhiQuan_top,false,function() u_ismoving=false; end,0);
+			                SP_u_down2:playAnimationOnce(animation_ZhiQuan_top,false,function() u_ismoving=false; end,0);
+							---------------------------------------------------------------------------------------------
+							local x_=math.abs(u_midXmid-car2_midXmid);
+							local y_=math.abs(u_midYmid-45-car2_midYmid);
+							if x_*x_+y_*y_<200*200 and car2_midYmid>u_midYmid-45 and y_/x_>2 then
+							    car2_life=car2_life-10;
+								if car2_life<0 then
+								    car2_life=0;
+								end;
+							end;
+							---------------------------------------------------------------------------------------------
+							local x_=math.abs(u_midXmid-car1_midXmid);
+							local y_=math.abs(u_midYmid-45-car1_midYmid);
+							if x_*x_+y_*y_<200*200 and car1_midYmid>u_midYmid-45 and y_/x_>2 then
+							    car1_life=car1_life-10;
+								if car1_life<0 then
+								    car1_life=0;
+								end;
+							end;
+							----------------------------------------------------------------------------------------------
+							local x_=math.abs(I_midXmid-u_midXmid);
+							local y_=math.abs(I_midYmid-u_midYmid);
+							if x_*x_+y_*y_<200*200 and u_midYmid<I_midYmid and y_/x_>2 then
+							    I_life=I_life-10;
+								if I_life<0 then
+								    I_life=0;
+								end;
+							end;
+							----------------------------------------------------------------------------------------------
+						end;
+						if u_attack_dir==2 then
+						    ----------------------------------------------------------------------------------------------
+						    local animation_ZhiQuan_righttop=display.newAnimation(display.newFrames("%d-1.png",777+40,8),0.08);
+			                SP_u_up1:playAnimationOnce(animation_ZhiQuan_righttop,false,function() u_ismoving=false; end,0);
+			                SP_u_up2:playAnimationOnce(animation_ZhiQuan_righttop,false,function() u_ismoving=false; end,0);
+			                SP_u_down1:playAnimationOnce(animation_ZhiQuan_righttop,false,function() u_ismoving=false; end,0);
+			                SP_u_down2:playAnimationOnce(animation_ZhiQuan_righttop,false,function() u_ismoving=false; end,0);
+							----------------------------------------------------------------------------------------------
+							local x_=math.abs(u_midXmid-car2_midXmid);
+							local y_=math.abs(u_midYmid-45-car2_midYmid);
+							if x_*x_+y_*y_<200*200 
+							and car2_midYmid>u_midYmid-45 and car2_midXmid>u_midXmid 
+							and y_/x_<2 and y_/x_>0.5 then
+							    car2_life=car2_life-10;
+								if car2_life<0 then
+								    car2_life=0;
+								end;
+							end;
+							----------------------------------------------------------------------------------------------
+							local x_=math.abs(u_midXmid-car1_midXmid);
+							local y_=math.abs(u_midYmid-45-car1_midYmid);
+							if x_*x_+y_*y_<200*200 
+							and car1_midYmid>u_midYmid-45 and car1_midXmid>u_midXmid 
+							and y_/x_<2 and y_/x_>0.5 then
+							    car1_life=car1_life-10;
+								if car1_life<0 then
+								    car1_life=0;
+								end;
+							end;
+							----------------------------------------------------------------------------------------------
+							local x_=math.abs(I_midXmid-u_midXmid);
+							local y_=math.abs(I_midYmid-u_midYmid);
+							if x_*x_+y_*y_<200*200 
+							and u_midYmid<I_midYmid and u_midXmid<I_midXmid 
+							and y_/x_<2 and y_/x_>0.5 then
+							    I_life=I_life-10;
+								if I_life<0 then
+								    I_life=0;
+								end;
+							end;
+							----------------------------------------------------------------------------------------------
+						end;
+						if u_attack_dir==3 then
+						    ----------------------------------------------------------------------------------------------
+						    local animation_ZhiQuan_right=display.newAnimation(display.newFrames("%d-1.png",777+30,8),0.08);
+			                SP_u_up1:playAnimationOnce(animation_ZhiQuan_right,false,function() u_ismoving=false; end,0);
+			                SP_u_up2:playAnimationOnce(animation_ZhiQuan_right,false,function() u_ismoving=false; end,0);
+			                SP_u_down1:playAnimationOnce(animation_ZhiQuan_right,false,function() u_ismoving=false; end,0);
+			                SP_u_down2:playAnimationOnce(animation_ZhiQuan_right,false,function() u_ismoving=false; end,0);
+							----------------------------------------------------------------------------------------------
+							local x_=math.abs(u_midXmid-car2_midXmid);
+							local y_=math.abs(u_midYmid-45-car2_midYmid);
+							if x_*x_+y_*y_<200*200 and car2_midXmid>u_midXmid and y_/x_<0.5 then
+							    car2_life=car2_life-10;
+								if car2_life<0 then
+								    car2_life=0;
+								end;
+							end;
+							----------------------------------------------------------------------------------------------
+							local x_=math.abs(u_midXmid-car1_midXmid);
+							local y_=math.abs(u_midYmid-45-car1_midYmid);
+							if x_*x_+y_*y_<200*200 and car1_midXmid>u_midXmid and y_/x_<0.5 then
+							    car1_life=car1_life-10;
+								if car1_life<0 then
+								    car1_life=0;
+								end;
+							end;
+							----------------------------------------------------------------------------------------------
+							local x_=math.abs(I_midXmid-u_midXmid);
+							local y_=math.abs(I_midYmid-u_midYmid);
+							if x_*x_+y_*y_<200*200 and u_midXmid<I_midXmid and y_/x_<0.5 then
+							    I_life=I_life-10;
+								if I_life<0 then
+								    I_life=0;
+								end;
+							end;
+							----------------------------------------------------------------------------------------------
+						end;
+						if u_attack_dir==4 then
+						    ----------------------------------------------------------------------------------------------
+						    local animation_ZhiQuan_rightdown=display.newAnimation(display.newFrames("%d-1.png",777+20,8),0.08);
+			                SP_u_up1:playAnimationOnce(animation_ZhiQuan_rightdown,false,function() u_ismoving=false; end,0);
+			                SP_u_up2:playAnimationOnce(animation_ZhiQuan_rightdown,false,function() u_ismoving=false; end,0);
+			                SP_u_down1:playAnimationOnce(animation_ZhiQuan_rightdown,false,function() u_ismoving=false; end,0);
+			                SP_u_down2:playAnimationOnce(animation_ZhiQuan_rightdown,false,function() u_ismoving=false; end,0);
+							----------------------------------------------------------------------------------------------
+							local x_=math.abs(u_midXmid-car2_midXmid);
+							local y_=math.abs(u_midYmid-45-car2_midYmid);
+							if x_*x_+y_*y_<200*200 
+							and car2_midYmid<u_midYmid-45 and car2_midXmid>u_midXmid 
+							and y_/x_<2 and y_/x_>0.5 then
+							    car2_life=car2_life-10;
+								if car2_life<0 then
+								    car2_life=0;
+								end;
+							end;
+							----------------------------------------------------------------------------------------------
+							local x_=math.abs(u_midXmid-car1_midXmid);
+							local y_=math.abs(u_midYmid-45-car1_midYmid);
+							if x_*x_+y_*y_<200*200 
+							and car1_midYmid<u_midYmid-45 and car1_midXmid>u_midXmid 
+							and y_/x_<2 and y_/x_>0.5 then
+							    car1_life=car1_life-10;
+								if car1_life<0 then
+								    car1_life=0;
+								end;
+							end;
+							----------------------------------------------------------------------------------------------
+							local x_=math.abs(I_midXmid-u_midXmid);
+							local y_=math.abs(I_midYmid-u_midYmid);
+							if x_*x_+y_*y_<200*200 
+							and u_midYmid>I_midYmid and u_midXmid<I_midXmid 
+							and y_/x_<2 and y_/x_>0.5 then
+							    I_life=I_life-10;
+								if I_life<0 then
+								    I_life=0;
+								end;
+							end;
+							----------------------------------------------------------------------------------------------
+						end;
+						if u_attack_dir==5 then
+						    ----------------------------------------------------------------------------------------------
+						    local animation_ZhiQuan_down=display.newAnimation(display.newFrames("%d-1.png",777+10,8),0.08);
+			                SP_u_up1:playAnimationOnce(animation_ZhiQuan_down,false,function() u_ismoving=false; end,0);
+			                SP_u_up2:playAnimationOnce(animation_ZhiQuan_down,false,function() u_ismoving=false; end,0);
+			                SP_u_down1:playAnimationOnce(animation_ZhiQuan_down,false,function() u_ismoving=false; end,0);
+			                SP_u_down2:playAnimationOnce(animation_ZhiQuan_down,false,function() u_ismoving=false; end,0);
+							----------------------------------------------------------------------------------------------
+							local x_=math.abs(u_midXmid-car2_midXmid);
+							local y_=math.abs(u_midYmid-45-car2_midYmid);
+							if x_*x_+y_*y_<200*200 and car2_midYmid<u_midYmid-45 and y_/x_>2 then
+							    car2_life=car2_life-10;
+								if car2_life<0 then
+								    car2_life=0;
+								end;
+							end;
+							----------------------------------------------------------------------------------------------
+							local x_=math.abs(u_midXmid-car1_midXmid);
+							local y_=math.abs(u_midYmid-45-car1_midYmid);
+							if x_*x_+y_*y_<200*200 and car1_midYmid<u_midYmid-45 and y_/x_>2 then
+							    car1_life=car1_life-10;
+								if car1_life<0 then
+								    car1_life=0;
+								end;
+							end;
+							----------------------------------------------------------------------------------------------
+							local x_=math.abs(I_midXmid-u_midXmid);
+							local y_=math.abs(I_midYmid-u_midYmid);
+							if x_*x_+y_*y_<200*200 and u_midYmid>I_midYmid and y_/x_>2 then
+							    I_life=I_life-10;
+								if I_life<0 then
+								    I_life=0;
+								end;
+							end;
+							----------------------------------------------------------------------------------------------
+						end;
+						if u_attack_dir==6 then
+						    ----------------------------------------------------------------------------------------------
+						    local animation_ZhiQuan_leftdown=display.newAnimation(display.newFrames("%d-1.png",777,8),0.08);
+			                SP_u_up1:playAnimationOnce(animation_ZhiQuan_leftdown,false,function() u_ismoving=false; end,0);
+			                SP_u_up2:playAnimationOnce(animation_ZhiQuan_leftdown,false,function() u_ismoving=false; end,0);
+			                SP_u_down1:playAnimationOnce(animation_ZhiQuan_leftdown,false,function() u_ismoving=false; end,0);
+			                SP_u_down2:playAnimationOnce(animation_ZhiQuan_leftdown,false,function() u_ismoving=false; end,0);
+							----------------------------------------------------------------------------------------------
+							local x_=math.abs(u_midXmid-car2_midXmid);
+							local y_=math.abs(u_midYmid-45-car2_midYmid);
+							if x_*x_+y_*y_<200*200 
+							and car2_midYmid<u_midYmid-45 and car2_midXmid<u_midXmid 
+							and y_/x_<2 and y_/x_>0.5 then
+							    car2_life=car2_life-10;
+								if car2_life<0 then
+								    car2_life=0;
+								end;
+							end;
+							----------------------------------------------------------------------------------------------
+							local x_=math.abs(u_midXmid-car1_midXmid);
+							local y_=math.abs(u_midYmid-45-car1_midYmid);
+							if x_*x_+y_*y_<200*200 
+							and car1_midYmid<u_midYmid-45 and car1_midXmid<u_midXmid 
+							and y_/x_<2 and y_/x_>0.5 then
+							    car1_life=car1_life-10;
+								if car1_life<0 then
+								    car1_life=0;
+								end;
+							end;
+							----------------------------------------------------------------------------------------------
+							local x_=math.abs(I_midXmid-u_midXmid);
+							local y_=math.abs(I_midYmid-u_midYmid);
+							if x_*x_+y_*y_<200*200 
+							and u_midYmid>I_midYmid and u_midXmid>I_midXmid 
+							and y_/x_<2 and y_/x_>0.5 then
+							    I_life=I_life-10;
+								if I_life<0 then
+								    I_life=0;
+								end;
+							end;
+							----------------------------------------------------------------------------------------------
+						end;
+						if u_attack_dir==7 then
+						    ----------------------------------------------------------------------------------------------
+						    local animation_ZhiQuan_left=display.newAnimation(display.newFrames("%d-1.png",777+70,8),0.08);
+			                SP_u_up1:playAnimationOnce(animation_ZhiQuan_left,false,function() u_ismoving=false; end,0);
+			                SP_u_up2:playAnimationOnce(animation_ZhiQuan_left,false,function() u_ismoving=false; end,0);
+			                SP_u_down1:playAnimationOnce(animation_ZhiQuan_left,false,function() u_ismoving=false; end,0);
+			                SP_u_down2:playAnimationOnce(animation_ZhiQuan_left,false,function() u_ismoving=false; end,0);
+							----------------------------------------------------------------------------------------------
+							local x_=math.abs(u_midXmid-car2_midXmid);
+							local y_=math.abs(u_midYmid-45-car2_midYmid);
+							if x_*x_+y_*y_<200*200 and car2_midXmid<u_midXmid and y_/x_<0.5 then
+							    car2_life=car2_life-10;
+								if car2_life<0 then
+								    car2_life=0;
+								end;
+							end;
+							----------------------------------------------------------------------------------------------
+							local x_=math.abs(u_midXmid-car1_midXmid);
+							local y_=math.abs(u_midYmid-45-car1_midYmid);
+							if x_*x_+y_*y_<200*200 and car1_midXmid<u_midXmid and y_/x_<0.5 then
+							    car1_life=car1_life-10;
+								if car1_life<0 then
+								    car1_life=0;
+								end;
+							end;
+							----------------------------------------------------------------------------------------------
+							local x_=math.abs(I_midXmid-u_midXmid);
+							local y_=math.abs(I_midYmid-u_midYmid);
+							if x_*x_+y_*y_<200*200 and u_midXmid>I_midXmid and y_/x_<0.5 then
+							    I_life=I_life-10;
+								if I_life<0 then
+								    I_life=0;
+								end;
+							end;
+							----------------------------------------------------------------------------------------------
+						end;
+						if u_attack_dir==8 then
+						    ----------------------------------------------------------------------------------------------
+						    local animation_ZhiQuan_lefttop=display.newAnimation(display.newFrames("%d-1.png",777+60,8),0.08);
+			                SP_u_up1:playAnimationOnce(animation_ZhiQuan_lefttop,false,function() u_ismoving=false; end,0);
+			                SP_u_up2:playAnimationOnce(animation_ZhiQuan_lefttop,false,function() u_ismoving=false; end,0);
+			                SP_u_down1:playAnimationOnce(animation_ZhiQuan_lefttop,false,function() u_ismoving=false; end,0);
+			                SP_u_down2:playAnimationOnce(animation_ZhiQuan_lefttop,false,function() u_ismoving=false; end,0);
+							----------------------------------------------------------------------------------------------
+							local x_=math.abs(u_midXmid-car2_midXmid);
+							local y_=math.abs(u_midYmid-45-car2_midYmid);
+							if x_*x_+y_*y_<200*200 
+							and car2_midYmid>u_midYmid-45 and car2_midXmid<u_midXmid 
+							and y_/x_<2 and y_/x_>0.5 then
+							    car2_life=car2_life-10;
+								if car2_life<0 then
+								    car2_life=0;
+								end;
+							end;
+							----------------------------------------------------------------------------------------------
+							local x_=math.abs(u_midXmid-car1_midXmid);
+							local y_=math.abs(u_midYmid-45-car1_midYmid);
+							if x_*x_+y_*y_<200*200 
+							and car1_midYmid>u_midYmid-45 and car1_midXmid<u_midXmid 
+							and y_/x_<2 and y_/x_>0.5 then
+							    car1_life=car1_life-10;
+								if car1_life<0 then
+								    car1_life=0;
+								end;
+							end;
+							----------------------------------------------------------------------------------------------
+							local x_=math.abs(I_midXmid-u_midXmid);
+							local y_=math.abs(I_midYmid-u_midYmid);
+							if x_*x_+y_*y_<200*200 
+							and u_midYmid<I_midYmid and u_midXmid>I_midXmid 
+							and y_/x_<2 and y_/x_>0.5 then
+							    I_life=I_life-10;
+								if I_life<0 then
+								    I_life=0;
+								end;
+							end;
+							----------------------------------------------------------------------------------------------
+						end;
+						----【u打car2||u打car1||u打I：end】
+			        end;--if u_ismoving==false
+					end;--if who~=sofa
+				end;
+				if string.sub(getdata[i0],1,1)== "P"  then
+				print("\nget P")
+				    --获取去掉开头的部分:
+				    local s1=string.sub(getdata[i0],2,string.len(getdata[i0]))
+					
+					--分开数据
+				    datat=split(s1,"\n")
+					--
+					local P_sofa=tonumber(datat[1])
+					local P_link_ready_=datat[2]--"0" or "1"
+					local P_money0=datat[3]--压缩数据
+					local P_name=datat[4]
+					local P_photo0=datat[5]--压缩数据
+					
+					local i
+					for i=1,string.len(P_money0),1 do
+					--print("ascii".. (tonumber(string.byte(string.sub(P_money0,i,i)))-23))
+					end
+					----------------------------------------
+					--解压缩数据
+					local function webCHARtoNUMBER0to99(c)
+						return string.byte(c)-23
+                    end
+					local function webSTRINGtoINT(s)
+					--print("s".. s)
+					    local i
+						local sum=0
+						for i=1,string.len(s),1 do
+						    sum=sum*100+webCHARtoNUMBER0to99(string.sub(s,i,i))
+						end
+						return sum
+					end
+					----------------------------------------
+					
+					local P_money=webSTRINGtoINT(P_money0)
+					local P_photo=webSTRINGtoINT(P_photo0)
+					
+					print("sofa:".. P_sofa)
+					print("link ready :".. P_link_ready_)
+					print("money:".. P_money)
+					print("name:".. P_name)
+					print("photo:".. P_photo)
+					
+					BY_link[P_sofa]=tonumber(string.sub(P_link_ready_,1,1))
+					BY_ready[P_sofa]=tonumber(string.sub(P_link_ready_,2,2))
+					BY_money[P_sofa]=P_money
+					BY_name[P_sofa]=P_name
+					BY_photo[P_sofa]=P_photo
+					
+				end
+			    if string.sub(getdata[i0],1,1)== "T" then
+				    --获取去掉开头的部分:
+				    local s1=string.sub(getdata[i0],2,string.len(getdata[i0]));
+					--
+					--获取timer作为client的timer
+					casert=tonumber(s1);
+					print("\nget t:".. casert);
+					if casert==1 then
+					    closecaserall();
+						opencaser2();
+					end;
+			    end;
+				if string.sub(getdata[i0],1,1)=="3" then
+				    --获取去掉开头的部分:
+				    local s1=string.sub(getdata[i0],2,string.len(getdata[i0]))
+					--分开数据
+				    local s2=split(s1,"~")
+					room=tonumber(s2[1]);print("room:" .. room);
+					sofa=tonumber(s2[2]);print("sofa:" .. sofa);
+					--===============================================================================================
+					socket:send(ByteArray.new():writeString("R}"):getPack());--告诉服务器准备完毕
+					--===============================================================================================
+	--##########################################################################################
+	timer=0
+	scheduler1 = cc.Director:getInstance():getScheduler()
+    schedulerID1=nil--不可少
+	schedulerID1 = scheduler1:scheduleScriptFunc(function() 
+		----------------------------------------------------------------------------------------
+	    timer=timer+1
+		----------------------------------------------------------------------------------------
+		----------------------------------------------------------------------------------------
+		--【即时数据沟通】
+		if timer%1==0 then
+		    --socket:send(ByteArray.new():writeString("T}"):getPack())
+			--print("send T")
+		end
+		----------------------------------------------------------------------------------------
+		----------------------------------------------------------------------------------------		
+		if timer%100==0 and 1==2 then 
+		    --【【客户端心跳检测{3/3}  写在timer最前面 
+			if con_ok==false then
+			    print("heart client close".. os.date("%c"))
+                socket:close()
+			    cc.Director:getInstance():getScheduler():unscheduleScriptEntry(schedulerID1)	
+				cc.Director:getInstance():getScheduler():unscheduleScriptEntry(schedulerID0)
+				local newScene = import("app.scenes.HomeScene"):new()
+                display.replaceScene(newScene,"crossFade",0,0)
+			end
+			if con_ok==true then con_ok=false end
+			--】】
+			--print("socket.type=".. type(socket))--未知类似断网问题
+		    --socket:send(ByteArray.new():writeString("X}"):getPack())--服务端心跳检测
+		end
+		----------------------------------------------------------------------------------------
+	end,0.02,false)
+	----------------------------------------------------------
+	--##########################################################################################
+	
+				end
+			end
+			end
+	    end
+	    if event.name == SocketTCP.EVENT_CONNECTED then
+	        socket:send(ByteArray.new():writeString("1"..id_.."~"..password_.."}"):getPack())
+			print("send first:".."1"..id_.."~"..password_.."}")
+	    end
+	    if event.name == SocketTCP.EVENT_CLOSE then
+	        print("close"..tostring(sum))
+	    end
+	    if event.name == SocketTCP.EVENT_CLOSED then
+		    print("closed")
+	        socket = nil
+	    end
+    end	
+    socket:addEventListener(SocketTCP.EVENT_CONNECTED,onStatues)--链接成功
+    socket:addEventListener(SocketTCP.EVENT_CLOSE,onStatues)--链接即将关闭
+    socket:addEventListener(SocketTCP.EVENT_CLOSED,onStatues)--链接已经关闭
+    socket:addEventListener(SocketTCP.EVENT_CONNECT_FAILURE,onStatues)--连接服务器失败
+    socket:addEventListener(SocketTCP.EVENT_DATA,onStatues)--接收到服务器的数据，存放在event.data
+    socket:connect()
+end--function
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
     --【load】
     -----------------------永远可见
     --SP_background3:setVisible(true);
     ----------------------opencaser0
-    --opencaser0();
+    closecaserall();
+	opencaser1();
+	makesocket();
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
     --【timer】
 	local scheduler = cc.Director:getInstance():getScheduler();
     schedulerID=nil;--不可省略，如果省略会导致“停止”失效
     schedulerID = scheduler:scheduleScriptFunc(function()
-	    casert=casert+1;
+	    
+----------------------------------------------------------------------------------------------------------------[caser==2]begin
+	if caser==2 then	
+	if casert==0 then 
+	else
+	    --casert递增：----------------
+		casert=casert+1;
 		if casert>10000000 then 
 		    casert=1; 
 		end;
+		------------------------------
 		--【小车显示层初始化】begin
 		SP_car1:setSpriteFrame(cc.SpriteFrameCache:getInstance():getSpriteFrame("car1.png"));
 		SP_car2:setSpriteFrame(cc.SpriteFrameCache:getInstance():getSpriteFrame("car2.png"));
@@ -496,6 +1874,32 @@ function MainScene:ctor()
 			SP_car2_life:setScaleX(13*car2_life/100);
 		end;
 	    --【防御塔打小车】end
+		--【防御塔打英雄】begin
+		if sofa==1 then
+		    if I_life>0 and I_midXmid>400 and I_midXmid<400+325*5 then
+		        I_life=I_life-0.05;
+		    end;
+		    if u_life>0 and u_midXmid<-400 and u_midXmid>-(400+325*5) then
+		        u_life=u_life-0.05;
+		    end;
+		end;
+		if sofa==2 then
+		    if u_life>0 and u_midXmid>400 and u_midXmid<400+325*5 then
+		        u_life=u_life-0.05;
+		    end;
+		    if I_life>0 and I_midXmid<-400 and I_midXmid>-(400+325*5) then
+		        I_life=I_life-0.05;
+		    end;
+		end;
+	    --【防御塔打英雄】end
+	    --【英雄血条的更新】begin
+		SP_I_life:align(display.CENTER, screenW/2+I_midXmid-130*(100-I_life)/200, screenH/2+I_midYmid+160);
+		SP_I_life:setScaleX(13*I_life/100);
+		SP_I_life_:align(display.CENTER, screenW/2+I_midXmid, screenH/2+I_midYmid+160);
+		SP_u_life:align(display.CENTER, screenW/2+u_midXmid-130*(100-u_life)/200, screenH/2+u_midYmid+160);
+		SP_u_life:setScaleX(13*u_life/100);
+		SP_u_life_:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid+160);
+	    --【英雄血条的更新】end
 	    --【小车打小车】begin
 		if car1_life>0 and car2_life>0 then
 		    if car2_midXmid<90 and car1_midXmid>-90 then
@@ -512,25 +1916,7 @@ function MainScene:ctor()
 			end;
 		end;
 	    --【小车打小车】end
-	    --【小车的移动与生命】begin
-		if car1_life>0 then
-		    SP_car1:setVisible(true);
-			SP_car1_life_:setVisible(true);
-			SP_car1_life:setVisible(true);
-		else
-		    SP_car1:setVisible(false);
-			SP_car1_life_:setVisible(false);
-			SP_car1_life:setVisible(false);
-		end;
-		if car2_life>0 then
-		    SP_car2:setVisible(true);
-			SP_car2_life_:setVisible(true);
-			SP_car2_life:setVisible(true);
-		else
-		    SP_car2:setVisible(false);
-			SP_car2_life_:setVisible(false);
-			SP_car2_life:setVisible(false);
-		end;
+	    --【小车的移动】begin
 		if car1_life>0 then
 		    if (car2_life>0 and car1_midXmid<-80)or(car2_life<=0 and car1_midXmid<1050) then
 				car1_midXmid=car1_midXmid+1;
@@ -549,9 +1935,9 @@ function MainScene:ctor()
 				SP_car2_life:setScaleX(13*car2_life/100);
 			end;
 		end;
-	    --【小车的移动与生命】end
+	    --【小车的移动】end
 	    --【显示层的叠放层次控制(I与世界)】begin
-		if I_midYmid+screenH/2-90>screenH/2-280 then--70为显示层人物高度。280为世界height的中间位置，也是防御塔和小兵的位置
+		if I_midYmid+screenH/2-45>screenH/2-235 then--70为显示层人物高度。280为地面（非背景）世界height的中间位置，也是防御塔和小兵的位置
 		    SP_I_up:setVisible(true);
 		    SP_I_down:setVisible(false);
 		else
@@ -564,7 +1950,7 @@ function MainScene:ctor()
 		SP_u_up2:setVisible(false);
 		SP_u_down1:setVisible(false);
 		SP_u_down2:setVisible(false);
-		if u_midYmid+screenH/2-90>screenH/2-280 then--70为显示层人物高度。280为世界height的中间位置，也是防御塔和小兵的位置
+		if u_midYmid+screenH/2-45>screenH/2-235 then--70为显示层人物高度。280为地面（非背景）世界height的中间位置，也是防御塔和小兵的位置
 		    if I_midYmid>u_midYmid then
 			    SP_u_up2:setVisible(true);
 			else    
@@ -578,7 +1964,14 @@ function MainScene:ctor()
 			end;
 		end;
 	    --【显示层的叠放层次控制(u与I+世界)】end
-	    --【方向控制begin】
+		--【把改变后的主角方向发送到服务器begin】
+		if direction_to_server~=client_move_dir then
+		    socket:send(ByteArray.new():writeString("D".. client_move_dir .."}"):getPack());
+			direction_to_server=client_move_dir;
+		end;
+		--【把改变后的主角方向发送到服务器end】
+		--【玩家输入层：玩家输入改变显示层begin】
+		--小摇杆位置辅助begin
 	    local x_= math.abs(movepoint_x-screenW/2-button_move_midXmid);
 		local y_= math.abs(movepoint_y-screenH/2-button_move_midYmid);
 				if x_*x_+y_*y_>=button_move_R*button_move_R and MoveDown==true then-- 一倍圈外
@@ -596,17 +1989,8 @@ function MainScene:ctor()
 					    movepoint_y=screenH/2+button_move_midYmid-y_;
 					end;
 				end;
-	    if move_dir==1 then
-		    if I_midYmid<worldH/2-screenH/2-80 then
-			    I_midYmid=I_midYmid+2; 
-			end;
-			if I_midYmid<worldH/2-screenH/2-80 and I_midYmid>-(worldH/2-screenH/2) then
-			    camera_midYmid=camera_midYmid+2; 
-			end;
-			SP_I_up:align(display.CENTER, screenW/2+I_midXmid, screenH/2+I_midYmid);
-			SP_I_down:align(display.CENTER, screenW/2+I_midXmid, screenH/2+I_midYmid);
-			SP_I_life_:align(display.CENTER, screenW/2+I_midXmid, screenH/2+I_midYmid+160);
-			SP_I_life:align(display.CENTER, screenW/2+I_midXmid, screenH/2+I_midYmid+160);
+		--小摇杆位置辅助end
+	    if client_move_dir==1 then
 			SP_attack1:align(display.CENTER, screenW/2+button_attack1_midXmid+camera_midXmid, 
 			                                   screenH/2+button_attack1_midYmid+camera_midYmid);
 			SP_attack2:align(display.CENTER, screenW/2+button_attack2_midXmid+camera_midXmid, 
@@ -616,6 +2000,99 @@ function MainScene:ctor()
 			SP_YaoGanSmall:align(display.CENTER, movepoint_x+camera_midXmid,movepoint_y+camera_midYmid);
 			camera:setPositionX(camera_midXmid); 
 	        camera:setPositionY(camera_midYmid);
+		end;
+		if client_move_dir==2 then
+			SP_attack1:align(display.CENTER, screenW/2+button_attack1_midXmid+camera_midXmid, 
+			                                   screenH/2+button_attack1_midYmid+camera_midYmid);
+			SP_attack2:align(display.CENTER, screenW/2+button_attack2_midXmid+camera_midXmid, 
+			                                   screenH/2+button_attack2_midYmid+camera_midYmid);
+			SP_YaoGanBig:align(display.CENTER, screenW/2+button_move_midXmid+camera_midXmid, 
+			                                   screenH/2+button_move_midYmid+camera_midYmid);
+			SP_YaoGanSmall:align(display.CENTER, movepoint_x+camera_midXmid,movepoint_y+camera_midYmid);
+			camera:setPositionX(camera_midXmid); 
+	        camera:setPositionY(camera_midYmid);
+		end;
+		if client_move_dir==3 then
+			SP_attack1:align(display.CENTER, screenW/2+button_attack1_midXmid+camera_midXmid, 
+			                                   screenH/2+button_attack1_midYmid+camera_midYmid);
+			SP_attack2:align(display.CENTER, screenW/2+button_attack2_midXmid+camera_midXmid, 
+			                                   screenH/2+button_attack2_midYmid+camera_midYmid);
+			SP_YaoGanBig:align(display.CENTER, screenW/2+button_move_midXmid+camera_midXmid, 
+			                                   screenH/2+button_move_midYmid+camera_midYmid);
+			SP_YaoGanSmall:align(display.CENTER, movepoint_x+camera_midXmid,movepoint_y+camera_midYmid);
+			camera:setPositionX(camera_midXmid); 
+	        camera:setPositionY(camera_midYmid);
+		end;
+		if client_move_dir==4 then
+			SP_attack1:align(display.CENTER, screenW/2+button_attack1_midXmid+camera_midXmid, 
+			                                   screenH/2+button_attack1_midYmid+camera_midYmid);
+			SP_attack2:align(display.CENTER, screenW/2+button_attack2_midXmid+camera_midXmid, 
+			                                   screenH/2+button_attack2_midYmid+camera_midYmid);
+			SP_YaoGanBig:align(display.CENTER, screenW/2+button_move_midXmid+camera_midXmid, 
+			                                   screenH/2+button_move_midYmid+camera_midYmid);
+			SP_YaoGanSmall:align(display.CENTER, movepoint_x+camera_midXmid,movepoint_y+camera_midYmid);
+			camera:setPositionX(camera_midXmid); 
+	        camera:setPositionY(camera_midYmid);
+		end;
+		if client_move_dir==5 then
+			SP_attack1:align(display.CENTER, screenW/2+button_attack1_midXmid+camera_midXmid, 
+			                                   screenH/2+button_attack1_midYmid+camera_midYmid);
+			SP_attack2:align(display.CENTER, screenW/2+button_attack2_midXmid+camera_midXmid, 
+			                                   screenH/2+button_attack2_midYmid+camera_midYmid);
+			SP_YaoGanBig:align(display.CENTER, screenW/2+button_move_midXmid+camera_midXmid, 
+			                                   screenH/2+button_move_midYmid+camera_midYmid);
+			SP_YaoGanSmall:align(display.CENTER, movepoint_x+camera_midXmid,movepoint_y+camera_midYmid);
+			camera:setPositionX(camera_midXmid); 
+	        camera:setPositionY(camera_midYmid);
+		end;
+		if client_move_dir==6 then
+			SP_attack1:align(display.CENTER, screenW/2+button_attack1_midXmid+camera_midXmid, 
+			                                   screenH/2+button_attack1_midYmid+camera_midYmid);
+			SP_attack2:align(display.CENTER, screenW/2+button_attack2_midXmid+camera_midXmid, 
+			                                   screenH/2+button_attack2_midYmid+camera_midYmid);
+			SP_YaoGanBig:align(display.CENTER, screenW/2+button_move_midXmid+camera_midXmid, 
+			                                   screenH/2+button_move_midYmid+camera_midYmid);
+			SP_YaoGanSmall:align(display.CENTER, movepoint_x+camera_midXmid,movepoint_y+camera_midYmid);
+			camera:setPositionX(camera_midXmid); 
+	        camera:setPositionY(camera_midYmid);
+		end;
+		if client_move_dir==7 then
+			SP_attack1:align(display.CENTER, screenW/2+button_attack1_midXmid+camera_midXmid, 
+			                                   screenH/2+button_attack1_midYmid+camera_midYmid);
+			SP_attack2:align(display.CENTER, screenW/2+button_attack2_midXmid+camera_midXmid, 
+			                                   screenH/2+button_attack2_midYmid+camera_midYmid);
+			SP_YaoGanBig:align(display.CENTER, screenW/2+button_move_midXmid+camera_midXmid, 
+			                                   screenH/2+button_move_midYmid+camera_midYmid);
+			SP_YaoGanSmall:align(display.CENTER, movepoint_x+camera_midXmid,movepoint_y+camera_midYmid);
+			camera:setPositionX(camera_midXmid); 
+	        camera:setPositionY(camera_midYmid);
+		end;
+		if client_move_dir==8 then
+			SP_attack1:align(display.CENTER, screenW/2+button_attack1_midXmid+camera_midXmid, 
+			                                   screenH/2+button_attack1_midYmid+camera_midYmid);
+			SP_attack2:align(display.CENTER, screenW/2+button_attack2_midXmid+camera_midXmid, 
+			                                   screenH/2+button_attack2_midYmid+camera_midYmid);
+			SP_YaoGanBig:align(display.CENTER, screenW/2+button_move_midXmid+camera_midXmid, 
+			                                   screenH/2+button_move_midYmid+camera_midYmid);
+			SP_YaoGanSmall:align(display.CENTER, movepoint_x+camera_midXmid,movepoint_y+camera_midYmid);
+			camera:setPositionX(camera_midXmid); 
+	        camera:setPositionY(camera_midYmid);
+		end;
+		--【玩家输入层：玩家输入改变显示层end】
+		--【根据服务端传来的数据进行I的8方向移动begin】
+		if move_dir==0 then
+		    --socket:send(ByteArray.new():writeString("D0}"):getPack());
+		end;
+	    if move_dir==1 then
+		    --socket:send(ByteArray.new():writeString("D1}"):getPack());
+		    if I_midYmid<worldH/2-screenH/2-80 then
+			    I_midYmid=I_midYmid+3; 
+			end;
+			if I_midYmid<worldH/2-screenH/2-80 and I_midYmid>-(worldH/2-screenH/2) then
+			    camera_midYmid=camera_midYmid+3; 
+			end;
+			SP_I_up:align(display.CENTER, screenW/2+I_midXmid, screenH/2+I_midYmid);
+			SP_I_down:align(display.CENTER, screenW/2+I_midXmid, screenH/2+I_midYmid);
 			if ismoving==false then
 			    ismoving=true;
 			    local animation_XingZou_top=display.newAnimation(display.newFrames("%d-1.png",65+40,8),0.02);--时间间隔0.2
@@ -624,31 +2101,21 @@ function MainScene:ctor()
 			end;
 		end;
 		if move_dir==2 then
+		    --socket:send(ByteArray.new():writeString("D2}"):getPack());
 		    if I_midXmid<worldW/2 then
-		        I_midXmid=I_midXmid+1.4;
+		        I_midXmid=I_midXmid+2;
 			end;
 			if I_midXmid<worldW/2-screenW/2 and I_midXmid>-(worldW/2-screenW/2) then
-				camera_midXmid=camera_midXmid+1.4; 
+				camera_midXmid=camera_midXmid+2; 
 			end;
 			if I_midYmid<worldH/2-screenH/2-80 then
-			    I_midYmid=I_midYmid+1.4; 
+			    I_midYmid=I_midYmid+2; 
 			end;
 			if I_midYmid<worldH/2-screenH/2-80 and I_midYmid>-(worldH/2-screenH/2) then
-			    camera_midYmid=camera_midYmid+1.4; 
+			    camera_midYmid=camera_midYmid+2; 
 			end;
 			SP_I_up:align(display.CENTER, screenW/2+I_midXmid, screenH/2+I_midYmid);
 			SP_I_down:align(display.CENTER, screenW/2+I_midXmid, screenH/2+I_midYmid);
-			SP_I_life_:align(display.CENTER, screenW/2+I_midXmid, screenH/2+I_midYmid+160);
-			SP_I_life:align(display.CENTER, screenW/2+I_midXmid, screenH/2+I_midYmid+160);
-			SP_attack1:align(display.CENTER, screenW/2+button_attack1_midXmid+camera_midXmid, 
-			                                   screenH/2+button_attack1_midYmid+camera_midYmid);
-			SP_attack2:align(display.CENTER, screenW/2+button_attack2_midXmid+camera_midXmid, 
-			                                   screenH/2+button_attack2_midYmid+camera_midYmid);
-			SP_YaoGanBig:align(display.CENTER, screenW/2+button_move_midXmid+camera_midXmid, 
-			                                   screenH/2+button_move_midYmid+camera_midYmid);
-			SP_YaoGanSmall:align(display.CENTER, movepoint_x+camera_midXmid,movepoint_y+camera_midYmid);
-			camera:setPositionX(camera_midXmid); 
-	        camera:setPositionY(camera_midYmid);
 			if ismoving==false then
 			    ismoving=true;
 			    local animation_XingZou_righttop=display.newAnimation(display.newFrames("%d-1.png",65+32,8),0.02);--时间间隔0.2
@@ -657,25 +2124,15 @@ function MainScene:ctor()
 			end;
 		end;
 		if move_dir==3 then
+		    --socket:send(ByteArray.new():writeString("D3}"):getPack());
 		    if I_midXmid<worldW/2 then
-		        I_midXmid=I_midXmid+2;
+		        I_midXmid=I_midXmid+3;
 			end;
 			if I_midXmid<worldW/2-screenW/2 and I_midXmid>-(worldW/2-screenW/2) then
-				camera_midXmid=camera_midXmid+2; 
+				camera_midXmid=camera_midXmid+3; 
 			end;
 			SP_I_up:align(display.CENTER, screenW/2+I_midXmid, screenH/2+I_midYmid);
 			SP_I_down:align(display.CENTER, screenW/2+I_midXmid, screenH/2+I_midYmid);
-			SP_I_life_:align(display.CENTER, screenW/2+I_midXmid, screenH/2+I_midYmid+160);
-			SP_I_life:align(display.CENTER, screenW/2+I_midXmid, screenH/2+I_midYmid+160);
-			SP_attack1:align(display.CENTER, screenW/2+button_attack1_midXmid+camera_midXmid, 
-			                                   screenH/2+button_attack1_midYmid+camera_midYmid);
-			SP_attack2:align(display.CENTER, screenW/2+button_attack2_midXmid+camera_midXmid, 
-			                                   screenH/2+button_attack2_midYmid+camera_midYmid);
-			SP_YaoGanBig:align(display.CENTER, screenW/2+button_move_midXmid+camera_midXmid, 
-			                                   screenH/2+button_move_midYmid+camera_midYmid);
-			SP_YaoGanSmall:align(display.CENTER, movepoint_x+camera_midXmid,movepoint_y+camera_midYmid);
-			camera:setPositionX(camera_midXmid); 
-	        camera:setPositionY(camera_midYmid);
 			if ismoving==false then
 			    ismoving=true;
 			    local animation_XingZou_right=display.newAnimation(display.newFrames("%d-1.png",65+24,8),0.02);--时间间隔0.2
@@ -684,31 +2141,21 @@ function MainScene:ctor()
 			end;
 		end;
 		if move_dir==4 then
+		    --socket:send(ByteArray.new():writeString("D4}"):getPack());
 		    if I_midXmid<worldW/2 then
-		        I_midXmid=I_midXmid+1.4;
+		        I_midXmid=I_midXmid+2;
 			end;
 			if I_midXmid<worldW/2-screenW/2 and I_midXmid>-(worldW/2-screenW/2) then
-				camera_midXmid=camera_midXmid+1.4; 
+				camera_midXmid=camera_midXmid+2; 
 			end;
 			if I_midYmid>-(worldH/2-130) then
-			    I_midYmid=I_midYmid-1.4;
+			    I_midYmid=I_midYmid-2;
 			end;
 			if I_midYmid>-(worldH/2-screenH/2) then
-				camera_midYmid=camera_midYmid-1.4; 
+				camera_midYmid=camera_midYmid-2; 
 			end;
 			SP_I_up:align(display.CENTER, screenW/2+I_midXmid, screenH/2+I_midYmid);
 			SP_I_down:align(display.CENTER, screenW/2+I_midXmid, screenH/2+I_midYmid);
-			SP_I_life_:align(display.CENTER, screenW/2+I_midXmid, screenH/2+I_midYmid+160);
-			SP_I_life:align(display.CENTER, screenW/2+I_midXmid, screenH/2+I_midYmid+160);
-			SP_attack1:align(display.CENTER, screenW/2+button_attack1_midXmid+camera_midXmid, 
-			                                   screenH/2+button_attack1_midYmid+camera_midYmid);
-			SP_attack2:align(display.CENTER, screenW/2+button_attack2_midXmid+camera_midXmid, 
-			                                   screenH/2+button_attack2_midYmid+camera_midYmid);
-			SP_YaoGanBig:align(display.CENTER, screenW/2+button_move_midXmid+camera_midXmid, 
-			                                   screenH/2+button_move_midYmid+camera_midYmid);
-			SP_YaoGanSmall:align(display.CENTER, movepoint_x+camera_midXmid,movepoint_y+camera_midYmid);
-			camera:setPositionX(camera_midXmid); 
-	        camera:setPositionY(camera_midYmid);
 			if ismoving==false then
 			    ismoving=true;
 			    local animation_XingZou_rightdown=display.newAnimation(display.newFrames("%d-1.png",65+16,8),0.02);--时间间隔0.2
@@ -717,25 +2164,15 @@ function MainScene:ctor()
 			end;
 		end;
 		if move_dir==5 then
+		    --socket:send(ByteArray.new():writeString("D5}"):getPack());
 		    if I_midYmid>-(worldH/2-130) then
-			    I_midYmid=I_midYmid-2;
+			    I_midYmid=I_midYmid-3;
 			end;
 			if I_midYmid>-(worldH/2-screenH/2) then
-				camera_midYmid=camera_midYmid-2; 
+				camera_midYmid=camera_midYmid-3; 
 			end;
 			SP_I_up:align(display.CENTER, screenW/2+I_midXmid, screenH/2+I_midYmid);
 			SP_I_down:align(display.CENTER, screenW/2+I_midXmid, screenH/2+I_midYmid);
-			SP_I_life_:align(display.CENTER, screenW/2+I_midXmid, screenH/2+I_midYmid+160);
-			SP_I_life:align(display.CENTER, screenW/2+I_midXmid, screenH/2+I_midYmid+160);
-			SP_attack1:align(display.CENTER, screenW/2+button_attack1_midXmid+camera_midXmid, 
-			                                   screenH/2+button_attack1_midYmid+camera_midYmid);
-			SP_attack2:align(display.CENTER, screenW/2+button_attack2_midXmid+camera_midXmid, 
-			                                   screenH/2+button_attack2_midYmid+camera_midYmid);
-			SP_YaoGanBig:align(display.CENTER, screenW/2+button_move_midXmid+camera_midXmid, 
-			                                   screenH/2+button_move_midYmid+camera_midYmid);
-			SP_YaoGanSmall:align(display.CENTER, movepoint_x+camera_midXmid,movepoint_y+camera_midYmid);
-			camera:setPositionX(camera_midXmid); 
-	        camera:setPositionY(camera_midYmid);
 			if ismoving==false then
 			    ismoving=true;
 			    local animation_XingZou_down=display.newAnimation(display.newFrames("%d-1.png",65+8,8),0.02);--时间间隔0.2
@@ -744,31 +2181,21 @@ function MainScene:ctor()
 			end;
 		end;
 		if move_dir==6 then
+		    --socket:send(ByteArray.new():writeString("D6}"):getPack());
 		    if I_midXmid>-(worldW/2) then
-			    I_midXmid=I_midXmid-1.4;
+			    I_midXmid=I_midXmid-2;
 			end;
 			if I_midXmid>-(worldW/2-screenW/2) and I_midXmid<worldW/2-screenW/2 then
-				camera_midXmid=camera_midXmid-1.4; 
+				camera_midXmid=camera_midXmid-2; 
 			end;
 			if I_midYmid>-(worldH/2-130) then
-			    I_midYmid=I_midYmid-1.4;
+			    I_midYmid=I_midYmid-2;
 			end;
 			if I_midYmid>-(worldH/2-screenH/2) then
-				camera_midYmid=camera_midYmid-1.4; 
+				camera_midYmid=camera_midYmid-2; 
 			end;
 			SP_I_up:align(display.CENTER, screenW/2+I_midXmid, screenH/2+I_midYmid);
 			SP_I_down:align(display.CENTER, screenW/2+I_midXmid, screenH/2+I_midYmid);
-			SP_I_life_:align(display.CENTER, screenW/2+I_midXmid, screenH/2+I_midYmid+160);
-			SP_I_life:align(display.CENTER, screenW/2+I_midXmid, screenH/2+I_midYmid+160);
-			SP_attack1:align(display.CENTER, screenW/2+button_attack1_midXmid+camera_midXmid, 
-			                                   screenH/2+button_attack1_midYmid+camera_midYmid);
-			SP_attack2:align(display.CENTER, screenW/2+button_attack2_midXmid+camera_midXmid, 
-			                                   screenH/2+button_attack2_midYmid+camera_midYmid);
-			SP_YaoGanBig:align(display.CENTER, screenW/2+button_move_midXmid+camera_midXmid, 
-			                                   screenH/2+button_move_midYmid+camera_midYmid);
-			SP_YaoGanSmall:align(display.CENTER, movepoint_x+camera_midXmid,movepoint_y+camera_midYmid);
-			camera:setPositionX(camera_midXmid); 
-	        camera:setPositionY(camera_midYmid);
 			if ismoving==false then
 			    ismoving=true;
 			    local animation_XingZou_leftdown=display.newAnimation(display.newFrames("%2d-1.png",65,8),0.02);--时间间隔0.2
@@ -777,25 +2204,15 @@ function MainScene:ctor()
 			end;
 		end;
 		if move_dir==7 then
+		    --socket:send(ByteArray.new():writeString("D7}"):getPack());
 		    if I_midXmid>-(worldW/2) then
-			    I_midXmid=I_midXmid-2;
+			    I_midXmid=I_midXmid-3;
 			end;
 			if I_midXmid>-(worldW/2-screenW/2) and I_midXmid<worldW/2-screenW/2 then
-				camera_midXmid=camera_midXmid-2; 
+				camera_midXmid=camera_midXmid-3; 
 			end;
 			SP_I_up:align(display.CENTER, screenW/2+I_midXmid, screenH/2+I_midYmid);
 			SP_I_down:align(display.CENTER, screenW/2+I_midXmid, screenH/2+I_midYmid);
-			SP_I_life_:align(display.CENTER, screenW/2+I_midXmid, screenH/2+I_midYmid+160);
-			SP_I_life:align(display.CENTER, screenW/2+I_midXmid, screenH/2+I_midYmid+160);
-			SP_attack1:align(display.CENTER, screenW/2+button_attack1_midXmid+camera_midXmid, 
-			                                   screenH/2+button_attack1_midYmid+camera_midYmid);
-			SP_attack2:align(display.CENTER, screenW/2+button_attack2_midXmid+camera_midXmid, 
-			                                   screenH/2+button_attack2_midYmid+camera_midYmid);
-			SP_YaoGanBig:align(display.CENTER, screenW/2+button_move_midXmid+camera_midXmid, 
-			                                   screenH/2+button_move_midYmid+camera_midYmid);
-			SP_YaoGanSmall:align(display.CENTER, movepoint_x+camera_midXmid,movepoint_y+camera_midYmid);
-			camera:setPositionX(camera_midXmid); 
-	        camera:setPositionY(camera_midYmid);
 			if ismoving==false then
 			    ismoving=true;
 			    local animation_XingZou_left=display.newAnimation(display.newFrames("%d-1.png",65+56,8),0.02);--时间间隔0.2
@@ -804,31 +2221,21 @@ function MainScene:ctor()
 			end;
 		end;
 		if move_dir==8 then
+		    --socket:send(ByteArray.new():writeString("D8}"):getPack());
 		    if I_midXmid>-(worldW/2) then
-			    I_midXmid=I_midXmid-1.4;
+			    I_midXmid=I_midXmid-2;
 			end;
 			if I_midXmid>-(worldW/2-screenW/2) and I_midXmid<worldW/2-screenW/2 then
-				camera_midXmid=camera_midXmid-1.4; 
+				camera_midXmid=camera_midXmid-2; 
 			end;
 			if I_midYmid<worldH/2-screenH/2-80 then
-			    I_midYmid=I_midYmid+1.4; 
+			    I_midYmid=I_midYmid+2; 
 			end;
 			if I_midYmid<worldH/2-screenH/2-80 and I_midYmid>-(worldH/2-screenH/2) then
-			    camera_midYmid=camera_midYmid+1.4; 
+			    camera_midYmid=camera_midYmid+2; 
 			end;
 			SP_I_up:align(display.CENTER, screenW/2+I_midXmid, screenH/2+I_midYmid);
 			SP_I_down:align(display.CENTER, screenW/2+I_midXmid, screenH/2+I_midYmid);
-			SP_I_life_:align(display.CENTER, screenW/2+I_midXmid, screenH/2+I_midYmid+160);
-			SP_I_life:align(display.CENTER, screenW/2+I_midXmid, screenH/2+I_midYmid+160);
-			SP_attack1:align(display.CENTER, screenW/2+button_attack1_midXmid+camera_midXmid, 
-			                                   screenH/2+button_attack1_midYmid+camera_midYmid);
-			SP_attack2:align(display.CENTER, screenW/2+button_attack2_midXmid+camera_midXmid, 
-			                                   screenH/2+button_attack2_midYmid+camera_midYmid);
-			SP_YaoGanBig:align(display.CENTER, screenW/2+button_move_midXmid+camera_midXmid, 
-			                                   screenH/2+button_move_midYmid+camera_midYmid);
-			SP_YaoGanSmall:align(display.CENTER, movepoint_x+camera_midXmid,movepoint_y+camera_midYmid);
-			camera:setPositionX(camera_midXmid); 
-	        camera:setPositionY(camera_midYmid);
 			if ismoving==false then
 			    ismoving=true;
 			    local animation_XingZou_lefttop=display.newAnimation(display.newFrames("%d-1.png",65+48,8),0.02);--时间间隔0.2
@@ -836,23 +2243,16 @@ function MainScene:ctor()
 			    SP_I_down:playAnimationOnce(animation_XingZou_lefttop,false,function() ismoving=false; end,0);
 			end;
 		end;
-		--【方向控制end】
-		--【AI调整方向begin】
-		if casert%50==0 then
-		    u_move_dir=math.random(0,8);
-		end;
-		--【AI调整方向end】
-		--【u的方向控制begin】
+		--【根据服务端传来的数据进行I的8方向移动end】
+		--【根据服务端传来的数据进行u的8方向移动begin】
 		if u_move_dir==1 then
 		    if u_midYmid<worldH/2-screenH/2-80 then
-			    u_midYmid=u_midYmid+2; 
+			    u_midYmid=u_midYmid+3; 
 			end;
 			SP_u_up1:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid);
 			SP_u_up2:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid);
 			SP_u_down1:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid);
 			SP_u_down2:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid);
-			SP_u_life_:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid+160);
-			SP_u_life:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid+160);
 			if u_ismoving==false then
 			    u_ismoving=true;
 			    local animation_XingZou_top=display.newAnimation(display.newFrames("%d-1.png",65+40,8),0.02);--时间间隔0.2
@@ -864,17 +2264,15 @@ function MainScene:ctor()
 		end;
 		if u_move_dir==2 then
 		    if u_midXmid<worldW/2 then
-		        u_midXmid=u_midXmid+1.4;
+		        u_midXmid=u_midXmid+2;
 			end;
 			if u_midYmid<worldH/2-screenH/2-80 then
-			    u_midYmid=u_midYmid+1.4; 
+			    u_midYmid=u_midYmid+2; 
 			end;
 			SP_u_up1:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid);
 			SP_u_up2:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid);
 			SP_u_down1:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid);
 			SP_u_down2:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid);
-			SP_u_life_:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid+160);
-			SP_u_life:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid+160);
 			if u_ismoving==false then
 			    u_ismoving=true;
 			    local animation_XingZou_righttop=display.newAnimation(display.newFrames("%d-1.png",65+32,8),0.02);--时间间隔0.2
@@ -886,14 +2284,12 @@ function MainScene:ctor()
 		end;
 		if u_move_dir==3 then
 		    if u_midXmid<worldW/2 then
-		        u_midXmid=u_midXmid+2;
+		        u_midXmid=u_midXmid+3;
 			end;
 			SP_u_up1:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid);
 			SP_u_up2:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid);
 			SP_u_down1:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid);
 			SP_u_down2:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid);
-			SP_u_life_:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid+160);
-			SP_u_life:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid+160);
 			if u_ismoving==false then
 			    u_ismoving=true;
 			    local animation_XingZou_right=display.newAnimation(display.newFrames("%d-1.png",65+24,8),0.02);--时间间隔0.2
@@ -905,17 +2301,15 @@ function MainScene:ctor()
 		end;
 		if u_move_dir==4 then
 		    if u_midXmid<worldW/2 then
-		        u_midXmid=u_midXmid+1.4;
+		        u_midXmid=u_midXmid+2;
 			end;
 			if u_midYmid>-(worldH/2-130) then
-			    u_midYmid=u_midYmid-1.4;
+			    u_midYmid=u_midYmid-2;
 			end;
 			SP_u_up1:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid);
 			SP_u_up2:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid);
 			SP_u_down1:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid);
 			SP_u_down2:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid);
-			SP_u_life_:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid+160);
-			SP_u_life:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid+160);
 			if u_ismoving==false then
 			    u_ismoving=true;
 			    local animation_XingZou_rightdown=display.newAnimation(display.newFrames("%d-1.png",65+16,8),0.02);--时间间隔0.2
@@ -927,14 +2321,12 @@ function MainScene:ctor()
 		end;
 		if u_move_dir==5 then
 		    if u_midYmid>-(worldH/2-130) then
-			    u_midYmid=u_midYmid-2;
+			    u_midYmid=u_midYmid-3;
 			end;
 			SP_u_up1:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid);
 			SP_u_up2:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid);
 			SP_u_down1:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid);
 			SP_u_down2:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid);
-			SP_u_life_:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid+160);
-			SP_u_life:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid+160);
 			if u_ismoving==false then
 			    u_ismoving=true;
 			    local animation_XingZou_down=display.newAnimation(display.newFrames("%d-1.png",65+8,8),0.02);--时间间隔0.2
@@ -946,17 +2338,15 @@ function MainScene:ctor()
 		end;
 		if u_move_dir==6 then
 		    if u_midXmid>-(worldW/2) then
-			    u_midXmid=u_midXmid-1.4;
+			    u_midXmid=u_midXmid-2;
 			end;
 			if u_midYmid>-(worldH/2-130) then
-			    u_midYmid=u_midYmid-1.4;
+			    u_midYmid=u_midYmid-2;
 			end;
 			SP_u_up1:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid);
 			SP_u_up2:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid);
 			SP_u_down1:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid);
 			SP_u_down2:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid);
-			SP_u_life_:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid+160);
-			SP_u_life:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid+160);
 			if u_ismoving==false then
 			    u_ismoving=true;
 			    local animation_XingZou_leftdown=display.newAnimation(display.newFrames("%2d-1.png",65,8),0.02);--时间间隔0.2
@@ -968,14 +2358,12 @@ function MainScene:ctor()
 		end;
 		if u_move_dir==7 then
 		    if u_midXmid>-(worldW/2) then
-			    u_midXmid=u_midXmid-2;
+			    u_midXmid=u_midXmid-3;
 			end;
 			SP_u_up1:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid);
 			SP_u_up2:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid);
 			SP_u_down1:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid);
 			SP_u_down2:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid);
-			SP_u_life_:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid+160);
-			SP_u_life:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid+160);
 			if u_ismoving==false then
 			    u_ismoving=true;
 			    local animation_XingZou_left=display.newAnimation(display.newFrames("%d-1.png",65+56,8),0.02);--时间间隔0.2
@@ -987,17 +2375,15 @@ function MainScene:ctor()
 		end;
 		if u_move_dir==8 then
 		    if u_midXmid>-(worldW/2) then
-			    u_midXmid=u_midXmid-1.4;
+			    u_midXmid=u_midXmid-2;
 			end;
 			if u_midYmid<worldH/2-screenH/2-80 then
-			    u_midYmid=u_midYmid+1.4; 
+			    u_midYmid=u_midYmid+2; 
 			end;
 			SP_u_up1:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid);
 			SP_u_up2:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid);
 			SP_u_down1:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid);
 			SP_u_down2:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid);
-			SP_u_life_:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid+160);
-			SP_u_life:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid+160);
 			if u_ismoving==false then
 			    u_ismoving=true;
 			    local animation_XingZou_lefttop=display.newAnimation(display.newFrames("%d-1.png",65+48,8),0.02);--时间间隔0.2
@@ -1007,10 +2393,47 @@ function MainScene:ctor()
 			    SP_u_down2:playAnimationOnce(animation_XingZou_lefttop,false,function() u_ismoving=false; end,0);
 			end;
 		end;
-		--【u的方向控制end】
-    end,0.01,false);
-    --【function】
-end
+		--【根据服务端传来的数据进行u的8方向移动end】
+	end;--casert==0
+	end;--caser==2
+-----------------------------------------------------------------------------------------------------------------[caser==2]end
+    end,0.05,false);
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+end;--main end
 
 function MainScene:onEnter()
 end
