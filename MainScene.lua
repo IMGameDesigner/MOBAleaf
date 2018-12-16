@@ -5,63 +5,67 @@ end)
 
 function MainScene:ctor()
     --【不变数据】
-	local worldW=4320;
-	local worldH=1500;
-	local screenW=1920;
-	local screenH=1080;
-	local button_move_R=190/2;
-	local button_move_midXmid=-700;
-	local button_move_midYmid=-280;
+	worldW=4320;
+	worldH=1500;
+	screenW=1920;
+	screenH=1080;
+	button_move_R=190/2;
+	button_move_midXmid=-700;
+	button_move_midYmid=-280;
 	button_attack1_midXmid=700;
 	button_attack1_midYmid=-280;
-	button_attack1_R=95/2;
+	button_attack1_R=3*95/2;
 	button_attack2_midXmid=840;
 	button_attack2_midYmid=-420;
 	button_attack2_R=95/2;
-	local camera_midXmid=0;
-	local camera_midYmid=0;
-	local ismoving=false;
-	local u_ismoving=false;
-	local caser=0;
+	camera_midXmid=0;
+	camera_midYmid=0;
+	ismoving=false;
+	u_ismoving=false;
+	caser=0;
 	room=-1;--使timer里可调用，不可加local。但是 SP加local都能在timer里调用
 	sofa=-1;
 	--【服务器包含的[房间公共]数据：】
-	local I_midXmid=0;
-	local I_midYmid=0;
-	local I_life=100;
-	local u_midXmid=0;
-	local u_midYmid=0;
-	local u_life=100;
-	local car1_midXmid=-1100;
-	local car1_midYmid=-280;
-	local car1_life=100;
-	local car2_midXmid=1100;
-	local car2_midYmid=-280;
-	local car2_life=100;
-	local tower1_life=100;
-	local tower2_life=100;
-	local move_dir=0;--通过接收服务器发来的消息得到
-	local attack_dir=3;--通过接收服务器发来的消息得到
-	local u_move_dir=0;
-	local u_attack_dir=3;
-	local casert=0;
+	I_midXmid=0;
+	I_midYmid=0;
+	I_life=100;
+	I_rank=0;
+	u_midXmid=0;
+	u_midYmid=0;
+	u_life=100;
+	u_rank=0;
+	car1_midXmid=-1100;
+	car1_midYmid=-280;
+	car1_life=100;
+	car2_midXmid=1100;
+	car2_midYmid=-280;
+	car2_life=100;
+	tower1_life=100;
+	tower2_life=100;
+	move_dir=0;--通过接收服务器发来的消息得到
+	attack_dir=3;--通过接收服务器发来的消息得到
+	u_move_dir=0;
+	u_attack_dir=3;
+	casert=0;
 	--【服务器包含的[玩家不同]数据：】
-	local BY_link={};
-	local BY_ready={};
-	local BY_money={};
-	local BY_name={};
-	local BY_photo={};
+	BY_link={};
+	BY_ready={};
+	BY_money={};
+	BY_name={};
+	BY_photo={};
     --【限制】
     display.addSpriteFrames("img/animation/animate_I.plist","img/animation/animate_I.pvr.ccz");
 	display.addSpriteFrames("img/plist/car.plist","img/plist/car.png");
 	display.addSpriteFrames("img/plist/life.plist","img/plist/life.png");
+	display.addSpriteFrames("img/plist/shu.plist","img/plist/shu.png");
+	display.addSpriteFrames("img/plist/YaoGanSmall.plist","img/plist/YaoGanSmall.png");
     math.randomseed(os.time());
     math.random(1,10000);
     --【数据】
-	local movepoint_x=1920/2-700;--小摇杆显示位置辅助
-	local movepoint_y=1080/2-280;
-	local client_move_dir=0;--玩家通过操作来改变（玩家输入层变量）
-	local direction_to_server=-1;--记上帧我方向，如我[client_move_dir]向变，就发送到服务器（玩家输入层变量）
+	movepoint_x=1920/2-700;--小摇杆显示位置辅助
+	movepoint_y=1080/2-280;
+	client_move_dir=0;--玩家通过操作来改变（玩家输入层变量）
+	direction_to_server=-1;--记上帧我方向，如我[client_move_dir]向变，就发送到服务器（玩家输入层变量）
 --==================================================================================================================================
 --==================================================================================================================================
 --==================================================================================================================================
@@ -264,7 +268,7 @@ function MainScene:ctor()
     SP_background0:addTo(self);
     SP_background0:setVisible(false);
 	
-	--:你的血条，叠放层次仅次于我的血条
+	--:你的血条（包括等级），叠放层次仅次于我的血条
 	local SP_u_life_=display.newSprite("img/game/life_.png");
     SP_u_life_:align(display.CENTER, screenW/2, screenH/2+160);
     SP_u_life_:addTo(self);
@@ -278,7 +282,17 @@ function MainScene:ctor()
 	SP_u_life:setScaleX(13*u_life/100);
 	SP_u_life:setScaleY(0.8);
 	
-	--:我的血条，叠放层次在物体里最高
+	SP_u_rank_=display.newSprite("img/game/rank_BG.png");
+    SP_u_rank_:align(display.CENTER, screenW/2, screenH/2+160);
+    SP_u_rank_:addTo(self);
+    SP_u_rank_:setVisible(false);
+	
+	SP_u_rankZI=display.newSprite("#shu0.png");
+    SP_u_rankZI:align(display.CENTER, screenW/2, screenH/2+160);
+    SP_u_rankZI:addTo(self);
+    SP_u_rankZI:setVisible(false);
+	
+	--:我的血条（包括等级），叠放层次在物体里最高
 	local SP_I_life_=display.newSprite("img/game/life_.png");
     SP_I_life_:align(display.CENTER, screenW/2, screenH/2+160);
     SP_I_life_:addTo(self);
@@ -291,6 +305,16 @@ function MainScene:ctor()
     SP_I_life:setVisible(false);
 	SP_I_life:setScaleX(13*I_life/100);
 	SP_I_life:setScaleY(0.8);
+	
+	SP_I_rank_=display.newSprite("img/game/rank_BG.png");
+    SP_I_rank_:align(display.CENTER, screenW/2, screenH/2+160);
+    SP_I_rank_:addTo(self);
+    SP_I_rank_:setVisible(false);
+	
+	SP_I_rankZI=display.newSprite("#shu0.png");
+    SP_I_rankZI:align(display.CENTER, screenW/2, screenH/2+160);
+    SP_I_rankZI:addTo(self);
+    SP_I_rankZI:setVisible(false);
 	
 	--摇杆：
 	local SP_YaoGanBig=display.newSprite("img/game/YaoGanBig0.png");
@@ -308,6 +332,7 @@ function MainScene:ctor()
     SP_attack1:align(display.CENTER, screenW/2+button_attack1_midXmid, screenH/2+button_attack1_midYmid);
     SP_attack1:addTo(self);
     SP_attack1:setVisible(false);
+    SP_attack1:setScale(3);
 	
 	local SP_attack2=display.newSprite("img/game/YaoGanSmall0.png");
     SP_attack2:align(display.CENTER, screenW/2+button_attack2_midXmid, screenH/2+button_attack2_midYmid);
@@ -472,6 +497,7 @@ function MainScene:ctor()
 				---------点击[攻击1按钮]-------------------------------------------------------------
 				if math.abs(point.x-screenW/2-button_attack1_midXmid)<button_attack1_R
 				and math.abs(point.y-screenH/2-button_attack1_midYmid)<button_attack1_R then
+				    SP_attack1:setSpriteFrame(cc.SpriteFrameCache:getInstance():getSpriteFrame("YaoGanSmall1.png"));
 					--if ismoving==false then
 					  --  ismoving=true;
 						socket:send(ByteArray.new():writeString("F}"):getPack());
@@ -496,6 +522,12 @@ function MainScene:ctor()
 			        local firstX=screenW/2+button_move_midXmid;
                     local firstY=screenH/2+button_move_midYmid;
 			        SP_YaoGanSmall:align(display.CENTER, firstX+camera_midXmid, firstY+camera_midYmid);
+				end;
+				-------------------------------------------------------------------------
+				---------[攻击1按钮]的消失-------------------------------------------------------------
+				if math.abs(point.x-screenW/2-button_attack1_midXmid)<button_attack1_R
+				and math.abs(point.y-screenH/2-button_attack1_midYmid)<button_attack1_R then
+				    SP_attack1:setSpriteFrame(cc.SpriteFrameCache:getInstance():getSpriteFrame("YaoGanSmall0.png"));
 				end;
 				-------------------------------------------------------------------------
 		    end
@@ -665,9 +697,13 @@ local function closecaserall()--【】【】
 	--"你"叠放层次之下高
 	SP_u_down2:setVisible(false);
 	--:你的血条
+    SP_u_rankZI:setVisible(false);
+    SP_u_rank_:setVisible(false);
     SP_u_life_:setVisible(false);
     SP_u_life:setVisible(false);
 	--:我的血条
+    SP_I_rankZI:setVisible(false);
+    SP_I_rank_:setVisible(false);
     SP_I_life_:setVisible(false);
     SP_I_life:setVisible(false);
 	--摇杆：
@@ -689,9 +725,11 @@ local function opencaser2()--【】【】
 					I_midXmid=-1000;
 	                I_midYmid=0;
 	                I_life=100;
+					I_rank=0;
 	                u_midXmid=1000;
 	                u_midYmid=0;
 	                u_life=100;
+					u_rank=0;
 	                car1_midXmid=-1100;
 	                car1_midYmid=-280;
 	                car1_life=100;
@@ -765,16 +803,20 @@ local function opencaser2()--【】【】
 	--"你"叠放层次之下高
 	SP_u_down2:setVisible(true);
 	--:你的血条
+    SP_u_rankZI:setVisible(true);
+    SP_u_rank_:setVisible(true);
     SP_u_life_:setVisible(true);
     SP_u_life:setVisible(true);
 	--:我的血条
+    SP_I_rankZI:setVisible(true);
+    SP_I_rank_:setVisible(true);
     SP_I_life_:setVisible(true);
     SP_I_life:setVisible(true);
 	--摇杆：
     SP_YaoGanBig:setVisible(true);
     SP_YaoGanSmall:setVisible(true);
     SP_attack1:setVisible(true);
-    SP_attack2:setVisible(true);
+    --SP_attack2:setVisible(true);
 end;
 --==================================================================================================================================
 --==================================================================================================================================
@@ -822,7 +864,7 @@ local function makesocket()--【】【】
     nettydata=""
     local function onStatues(event)--【】【】
 	    if event.name == SocketTCP.EVENT_DATA then
-		    --print(event.data)
+		    --print("【" .. event.data .. "】")
 			nettydata=nettydata .. event.data
 			if string.sub(nettydata,string.len(nettydata),string.len(nettydata))=="}" then
 			
@@ -1633,7 +1675,7 @@ local function makesocket()--【】【】
 						return string.byte(c)-23
                     end
 					local function webSTRINGtoINT(s)
-					--print("s".. s)
+					--print("(1689line)s:".. s)
 					    local i
 						local sum=0
 						for i=1,string.len(s),1 do
@@ -1670,6 +1712,7 @@ local function makesocket()--【】【】
 					    closecaserall();
 						opencaser2();
 					end;
+					function_timer();
 			    end;
 				if string.sub(getdata[i0],1,1)=="3" then
 				    --获取去掉开头的部分:
@@ -1775,54 +1818,7 @@ end--function
 --==================================================================================================================================
 --==================================================================================================================================
 --==================================================================================================================================
-    --【load】
-    -----------------------永远可见
-    --SP_background3:setVisible(true);
-    ----------------------opencaser0
-    closecaserall();
-	opencaser1();
-	makesocket();
---==================================================================================================================================
---==================================================================================================================================
---==================================================================================================================================
---==================================================================================================================================
---==================================================================================================================================
---==================================================================================================================================
---==================================================================================================================================
---==================================================================================================================================
---==================================================================================================================================
---==================================================================================================================================
---==================================================================================================================================
---==================================================================================================================================
---==================================================================================================================================
---==================================================================================================================================
---==================================================================================================================================
---==================================================================================================================================
---==================================================================================================================================
---==================================================================================================================================
---==================================================================================================================================
---==================================================================================================================================
---==================================================================================================================================
---==================================================================================================================================
---==================================================================================================================================
---==================================================================================================================================
---==================================================================================================================================
---==================================================================================================================================
---==================================================================================================================================
---==================================================================================================================================
---==================================================================================================================================
---==================================================================================================================================
---==================================================================================================================================
---==================================================================================================================================
---==================================================================================================================================
---==================================================================================================================================
---==================================================================================================================================
-    --【timer】
-	local scheduler = cc.Director:getInstance():getScheduler();
-    schedulerID=nil;--不可省略，如果省略会导致“停止”失效
-    schedulerID = scheduler:scheduleScriptFunc(function()
-	    
-----------------------------------------------------------------------------------------------------------------[caser==2]begin
+function function_timer()
 	if caser==2 then	
 	if casert==0 then 
 	else
@@ -1844,6 +1840,100 @@ end--function
 			car2_midXmid=1200;
 		end;
 		--【小车的生成】end
+		--【英雄的死亡与升级】begin
+		if I_life<=0 and sofa==1 then
+		    u_rank=u_rank+1;
+			if u_rank>=10 then
+			    u_rank=9;
+			end;
+			SP_u_rankZI:setSpriteFrame(cc.SpriteFrameCache:getInstance():getSpriteFrame("shu" .. u_rank .. ".png"));
+		    I_life=100;
+			I_midXmid=-(worldW/2-screenW/2);
+			I_midYmid=0;
+			camera_midXmid=-(worldW/2-screenW/2);
+	        camera_midYmid=0;
+			        SP_attack1:align(display.CENTER, screenW/2+button_attack1_midXmid+camera_midXmid, 
+			                                   screenH/2+button_attack1_midYmid+camera_midYmid);
+			        SP_attack2:align(display.CENTER, screenW/2+button_attack2_midXmid+camera_midXmid, 
+			                                   screenH/2+button_attack2_midYmid+camera_midYmid);
+			        SP_YaoGanBig:align(display.CENTER, screenW/2+button_move_midXmid+camera_midXmid, 
+			                                   screenH/2+button_move_midYmid+camera_midYmid);
+			        SP_YaoGanSmall:align(display.CENTER, movepoint_x+camera_midXmid,movepoint_y+camera_midYmid);
+					camera:setPositionX(camera_midXmid); 
+					camera:setPositionY(camera_midYmid); 
+					SP_I_up:align(display.CENTER, screenW/2+I_midXmid, screenH/2+I_midYmid);
+					SP_I_down:align(display.CENTER, screenW/2+I_midXmid, screenH/2+I_midYmid);
+					SP_u_up1:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid);
+			        SP_u_up2:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid);
+			        SP_u_down1:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid);
+			        SP_u_down2:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid);
+		end;
+		if I_life<=0 and sofa==2 then
+		    u_rank=u_rank+1;
+			if u_rank>=10 then
+			    u_rank=9;
+			end;
+			SP_u_rankZI:setSpriteFrame(cc.SpriteFrameCache:getInstance():getSpriteFrame("shu" .. u_rank .. ".png"));
+		    I_life=100;
+			I_midXmid=(worldW/2-screenW/2);
+			I_midYmid=0;
+			camera_midXmid=(worldW/2-screenW/2);
+	        camera_midYmid=0;
+			        SP_attack1:align(display.CENTER, screenW/2+button_attack1_midXmid+camera_midXmid, 
+			                                   screenH/2+button_attack1_midYmid+camera_midYmid);
+			        SP_attack2:align(display.CENTER, screenW/2+button_attack2_midXmid+camera_midXmid, 
+			                                   screenH/2+button_attack2_midYmid+camera_midYmid);
+			        SP_YaoGanBig:align(display.CENTER, screenW/2+button_move_midXmid+camera_midXmid, 
+			                                   screenH/2+button_move_midYmid+camera_midYmid);
+			        SP_YaoGanSmall:align(display.CENTER, movepoint_x+camera_midXmid,movepoint_y+camera_midYmid);
+					camera:setPositionX(camera_midXmid); 
+					camera:setPositionY(camera_midYmid); 
+					SP_I_up:align(display.CENTER, screenW/2+I_midXmid, screenH/2+I_midYmid);
+					SP_I_down:align(display.CENTER, screenW/2+I_midXmid, screenH/2+I_midYmid);
+					SP_u_up1:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid);
+			        SP_u_up2:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid);
+			        SP_u_down1:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid);
+			        SP_u_down2:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid);
+		end;
+		if u_life<=0 and sofa==1 then
+		    I_rank=I_rank+1;
+			if I_rank>=10 then
+			    I_rank=9;
+			end;
+			SP_I_rankZI:setSpriteFrame(cc.SpriteFrameCache:getInstance():getSpriteFrame("shu" .. I_rank .. ".png"));
+		    u_life=100;
+			u_midXmid=(worldW/2-screenW/2);
+			u_midYmid=0;
+					SP_u_up1:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid);
+			        SP_u_up2:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid);
+			        SP_u_down1:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid);
+			        SP_u_down2:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid);
+		end;
+		if u_life<=0 and sofa==2 then
+		    I_rank=I_rank+1;
+			if I_rank>=10 then
+			    I_rank=9;
+			end;
+			SP_I_rankZI:setSpriteFrame(cc.SpriteFrameCache:getInstance():getSpriteFrame("shu" .. I_rank .. ".png"));
+		    u_life=100;
+			u_midXmid=-(worldW/2-screenW/2);
+			u_midYmid=0;
+					SP_u_up1:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid);
+			        SP_u_up2:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid);
+			        SP_u_down1:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid);
+			        SP_u_down2:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid);
+		end;
+		--【英雄的死亡与升级】end
+		--【英雄的生命恢复】begin
+		if I_life>0 and I_life<100 then
+		    I_life=I_life+0.05*I_rank;
+			if I_life>100 then I_life=100 end;
+		end;
+		if u_life>0 and u_life<100 then
+		    u_life=u_life+0.05*u_rank;
+			if u_life>100 then u_life=100 end;
+		end;
+		--【英雄的生命恢复】end
 	    --【小车打防御塔】begin
 		if car1_life>0 and car1_midXmid>1000 then
 		    tower2_life=tower2_life-0.05;
@@ -1877,28 +1967,32 @@ end--function
 		--【防御塔打英雄】begin
 		if sofa==1 then
 		    if I_life>0 and I_midXmid>400 and I_midXmid<400+325*5 then
-		        I_life=I_life-0.05;
+		        I_life=I_life-1;
 		    end;
 		    if u_life>0 and u_midXmid<-400 and u_midXmid>-(400+325*5) then
-		        u_life=u_life-0.05;
+		        u_life=u_life-1;
 		    end;
 		end;
 		if sofa==2 then
 		    if u_life>0 and u_midXmid>400 and u_midXmid<400+325*5 then
-		        u_life=u_life-0.05;
+		        u_life=u_life-1;
 		    end;
 		    if I_life>0 and I_midXmid<-400 and I_midXmid>-(400+325*5) then
-		        I_life=I_life-0.05;
+		        I_life=I_life-1;
 		    end;
 		end;
 	    --【防御塔打英雄】end
-	    --【英雄血条的更新】begin
+	    --【英雄血条等级的更新】begin
 		SP_I_life:align(display.CENTER, screenW/2+I_midXmid-130*(100-I_life)/200, screenH/2+I_midYmid+160);
 		SP_I_life:setScaleX(13*I_life/100);
 		SP_I_life_:align(display.CENTER, screenW/2+I_midXmid, screenH/2+I_midYmid+160);
+		SP_I_rank_:align(display.CENTER, screenW/2+I_midXmid-70, screenH/2+I_midYmid+160);
+		SP_I_rankZI:align(display.CENTER, screenW/2+I_midXmid-70, screenH/2+I_midYmid+160);
 		SP_u_life:align(display.CENTER, screenW/2+u_midXmid-130*(100-u_life)/200, screenH/2+u_midYmid+160);
 		SP_u_life:setScaleX(13*u_life/100);
 		SP_u_life_:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid+160);
+		SP_u_rank_:align(display.CENTER, screenW/2+u_midXmid-70, screenH/2+u_midYmid+160);
+		SP_u_rankZI:align(display.CENTER, screenW/2+u_midXmid-70, screenH/2+u_midYmid+160);
 	    --【英雄血条的更新】end
 	    --【小车打小车】begin
 		if car1_life>0 and car2_life>0 then
@@ -1968,6 +2062,7 @@ end--function
 		if direction_to_server~=client_move_dir then
 		    socket:send(ByteArray.new():writeString("D".. client_move_dir .."}"):getPack());
 			direction_to_server=client_move_dir;
+			print("dir change and send to server");
 		end;
 		--【把改变后的主角方向发送到服务器end】
 		--【玩家输入层：玩家输入改变显示层begin】
@@ -2396,6 +2491,91 @@ end--function
 		--【根据服务端传来的数据进行u的8方向移动end】
 	end;--casert==0
 	end;--caser==2
+end;
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+    --【load】
+    -----------------------永远可见
+    --SP_background3:setVisible(true);
+    ----------------------opencaser0
+    closecaserall();
+	opencaser1();
+	makesocket();
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+--==================================================================================================================================
+    --【timer】
+	local scheduler = cc.Director:getInstance():getScheduler();
+    schedulerID=nil;--不可省略，如果省略会导致“停止”失效
+    schedulerID = scheduler:scheduleScriptFunc(function()
+	    
+----------------------------------------------------------------------------------------------------------------[caser==2]begin
+--function_timer();
 -----------------------------------------------------------------------------------------------------------------[caser==2]end
     end,0.05,false);
 --==================================================================================================================================
