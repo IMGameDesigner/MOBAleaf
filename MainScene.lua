@@ -118,6 +118,7 @@ function MainScene:ctor()
 	SP_BG_findgameZI:runAction(animate2);
 -----------------------------------------------------------------------------------------------------------------------------------
 	--game后背景：
+	
     local SP_background3=display.newSprite("img/game/BG3.png");
     SP_background3:align(display.CENTER, screenW/2, screenH/2);
     SP_background3:addTo(self);
@@ -936,7 +937,7 @@ local function makesocket()--【】【】
 						car2_life=car2life;
 					end;
 				end;
-				if string.sub(getdata[i0],1,1)== "K" then--获取主要节点visible的改变
+				if string.sub(getdata[i0],1,1)== "K" and 1==2 then--获取主要节点visible的改变
 				    --获取去掉开头的部分:
 				    local s1=string.sub(getdata[i0],2,string.len(getdata[i0]))
 					local gets=split(s1,"~");
@@ -1027,15 +1028,17 @@ local function makesocket()--【】【】
 					--print("who:".. who);
 					--print("sofa:".. sofa);
 					if who==sofa then
-					if ismoving==false then
-					    ismoving=true;
+					if  1==1 then
 				        ----【I打car2||I打car1||I打u：begin】
 						--必定是8个方向中的一个，必定执行动画，必定ismoving->false
 						if attack_dir==1 then
 						    ----------------------------------------------------------------------------------------------
-						    local animation_ZhiQuan_top=display.newAnimation(display.newFrames("%d-1.png",777+50,8),0.08);
-			                SP_I_up:playAnimationOnce(animation_ZhiQuan_top,false,function() ismoving=false; end,0);
-			                SP_I_down:playAnimationOnce(animation_ZhiQuan_top,false,function() ismoving=false; end,0);
+							if ismoving==false then
+					            ismoving=true;
+						        local animation_ZhiQuan_top=display.newAnimation(display.newFrames("%d-1.png",777+50,8),0.08);
+			                    SP_I_up:playAnimationOnce(animation_ZhiQuan_top,false,function() ismoving=false; end,0);
+			                    SP_I_down:playAnimationOnce(animation_ZhiQuan_top,false,function() ismoving=false; end,0);
+							end;
 							---------------------------------------------------------------------------------------------
 							local x_=math.abs(I_midXmid-car2_midXmid);
 							local y_=math.abs(I_midYmid-45-car2_midYmid);
@@ -1067,9 +1070,12 @@ local function makesocket()--【】【】
 						end;
 						if attack_dir==2 then
 						    ----------------------------------------------------------------------------------------------
-						    local animation_ZhiQuan_righttop=display.newAnimation(display.newFrames("%d-1.png",777+40,8),0.08);
-			                SP_I_up:playAnimationOnce(animation_ZhiQuan_righttop,false,function() ismoving=false; end,0);
-			                SP_I_down:playAnimationOnce(animation_ZhiQuan_righttop,false,function() ismoving=false; end,0);
+							if ismoving==false then
+					            ismoving=true;
+						        local animation_ZhiQuan_righttop=display.newAnimation(display.newFrames("%d-1.png",777+40,8),0.08);
+			                    SP_I_up:playAnimationOnce(animation_ZhiQuan_righttop,false,function() ismoving=false; end,0);
+			                    SP_I_down:playAnimationOnce(animation_ZhiQuan_righttop,false,function() ismoving=false; end,0);
+							end;
 							----------------------------------------------------------------------------------------------
 							local x_=math.abs(I_midXmid-car2_midXmid);
 							local y_=math.abs(I_midYmid-45-car2_midYmid);
@@ -1107,9 +1113,12 @@ local function makesocket()--【】【】
 						end;
 						if attack_dir==3 then
 						    ----------------------------------------------------------------------------------------------
-						    local animation_ZhiQuan_right=display.newAnimation(display.newFrames("%d-1.png",777+30,8),0.08);
-			                SP_I_up:playAnimationOnce(animation_ZhiQuan_right,false,function() ismoving=false; end,0);
-			                SP_I_down:playAnimationOnce(animation_ZhiQuan_right,false,function() ismoving=false; end,0);
+							if ismoving==false then
+					            ismoving=true;
+						        local animation_ZhiQuan_right=display.newAnimation(display.newFrames("%d-1.png",777+30,8),0.08);
+			                    SP_I_up:playAnimationOnce(animation_ZhiQuan_right,false,function() ismoving=false; end,0);
+			                    SP_I_down:playAnimationOnce(animation_ZhiQuan_right,false,function() ismoving=false; end,0);
+							end;
 							----------------------------------------------------------------------------------------------
 							local x_=math.abs(I_midXmid-car2_midXmid);
 							local y_=math.abs(I_midYmid-45-car2_midYmid);
@@ -1141,9 +1150,12 @@ local function makesocket()--【】【】
 						end;
 						if attack_dir==4 then
 						    ----------------------------------------------------------------------------------------------
-						    local animation_ZhiQuan_rightdown=display.newAnimation(display.newFrames("%d-1.png",777+20,8),0.08);
-			                SP_I_up:playAnimationOnce(animation_ZhiQuan_rightdown,false,function() ismoving=false; end,0);
-			                SP_I_down:playAnimationOnce(animation_ZhiQuan_rightdown,false,function() ismoving=false; end,0);
+							if ismoving==false then
+					            ismoving=true;
+						        local animation_ZhiQuan_rightdown=display.newAnimation(display.newFrames("%d-1.png",777+20,8),0.08);
+			                    SP_I_up:playAnimationOnce(animation_ZhiQuan_rightdown,false,function() ismoving=false; end,0);
+			                    SP_I_down:playAnimationOnce(animation_ZhiQuan_rightdown,false,function() ismoving=false; end,0);
+							end;
 							----------------------------------------------------------------------------------------------
 							local x_=math.abs(I_midXmid-car2_midXmid);
 							local y_=math.abs(I_midYmid-45-car2_midYmid);
@@ -1181,9 +1193,12 @@ local function makesocket()--【】【】
 						end;
 						if attack_dir==5 then
 						    ----------------------------------------------------------------------------------------------
-						    local animation_ZhiQuan_down=display.newAnimation(display.newFrames("%d-1.png",777+10,8),0.08);
-			                SP_I_up:playAnimationOnce(animation_ZhiQuan_down,false,function() ismoving=false; end,0);
-			                SP_I_down:playAnimationOnce(animation_ZhiQuan_down,false,function() ismoving=false; end,0);
+							if ismoving==false then
+					            ismoving=true;
+						        local animation_ZhiQuan_down=display.newAnimation(display.newFrames("%d-1.png",777+10,8),0.08);
+			                    SP_I_up:playAnimationOnce(animation_ZhiQuan_down,false,function() ismoving=false; end,0);
+			                    SP_I_down:playAnimationOnce(animation_ZhiQuan_down,false,function() ismoving=false; end,0);
+							end;
 							----------------------------------------------------------------------------------------------
 							local x_=math.abs(I_midXmid-car2_midXmid);
 							local y_=math.abs(I_midYmid-45-car2_midYmid);
@@ -1215,9 +1230,12 @@ local function makesocket()--【】【】
 						end;
 						if attack_dir==6 then
 						    ----------------------------------------------------------------------------------------------
-						    local animation_ZhiQuan_leftdown=display.newAnimation(display.newFrames("%d-1.png",777,8),0.08);
-			                SP_I_up:playAnimationOnce(animation_ZhiQuan_leftdown,false,function() ismoving=false; end,0);
-			                SP_I_down:playAnimationOnce(animation_ZhiQuan_leftdown,false,function() ismoving=false; end,0);
+							if ismoving==false then
+					            ismoving=true;
+						        local animation_ZhiQuan_leftdown=display.newAnimation(display.newFrames("%d-1.png",777,8),0.08);
+			                    SP_I_up:playAnimationOnce(animation_ZhiQuan_leftdown,false,function() ismoving=false; end,0);
+			                    SP_I_down:playAnimationOnce(animation_ZhiQuan_leftdown,false,function() ismoving=false; end,0);
+							end;
 							----------------------------------------------------------------------------------------------
 							local x_=math.abs(I_midXmid-car2_midXmid);
 							local y_=math.abs(I_midYmid-45-car2_midYmid);
@@ -1255,9 +1273,12 @@ local function makesocket()--【】【】
 						end;
 						if attack_dir==7 then
 						    ----------------------------------------------------------------------------------------------
-						    local animation_ZhiQuan_left=display.newAnimation(display.newFrames("%d-1.png",777+70,8),0.08);
-			                SP_I_up:playAnimationOnce(animation_ZhiQuan_left,false,function() ismoving=false; end,0);
-			                SP_I_down:playAnimationOnce(animation_ZhiQuan_left,false,function() ismoving=false; end,0);
+							if ismoving==false then
+					            ismoving=true;
+						        local animation_ZhiQuan_left=display.newAnimation(display.newFrames("%d-1.png",777+70,8),0.08);
+			                    SP_I_up:playAnimationOnce(animation_ZhiQuan_left,false,function() ismoving=false; end,0);
+			                    SP_I_down:playAnimationOnce(animation_ZhiQuan_left,false,function() ismoving=false; end,0);
+							end;
 							----------------------------------------------------------------------------------------------
 							local x_=math.abs(I_midXmid-car2_midXmid);
 							local y_=math.abs(I_midYmid-45-car2_midYmid);
@@ -1289,9 +1310,12 @@ local function makesocket()--【】【】
 						end;
 						if attack_dir==8 then
 						    ----------------------------------------------------------------------------------------------
-						    local animation_ZhiQuan_lefttop=display.newAnimation(display.newFrames("%d-1.png",777+60,8),0.08);
-			                SP_I_up:playAnimationOnce(animation_ZhiQuan_lefttop,false,function() ismoving=false; end,0);
-			                SP_I_down:playAnimationOnce(animation_ZhiQuan_lefttop,false,function() ismoving=false; end,0);
+							if ismoving==false then
+					            ismoving=true;
+						        local animation_ZhiQuan_lefttop=display.newAnimation(display.newFrames("%d-1.png",777+60,8),0.08);
+			                    SP_I_up:playAnimationOnce(animation_ZhiQuan_lefttop,false,function() ismoving=false; end,0);
+			                    SP_I_down:playAnimationOnce(animation_ZhiQuan_lefttop,false,function() ismoving=false; end,0);
+							end;
 							----------------------------------------------------------------------------------------------
 							local x_=math.abs(I_midXmid-car2_midXmid);
 							local y_=math.abs(I_midYmid-45-car2_midYmid);
@@ -1331,17 +1355,19 @@ local function makesocket()--【】【】
 					end;--ismoving
 					end;--who==sofa
 					if who~=sofa then
-				    if u_ismoving==false then
-					    u_ismoving=true;
+				    if  1==1 then
 						----【u打car2||u打car1||u打I：begin】
 						--必定是8个方向中的一个，必定执行动画，必定u_ismoving->false
 						if u_attack_dir==1 then
 						    ----------------------------------------------------------------------------------------------
-						    local animation_ZhiQuan_top=display.newAnimation(display.newFrames("%d-1.png",777+50,8),0.08);
-			                SP_u_up1:playAnimationOnce(animation_ZhiQuan_top,false,function() u_ismoving=false; end,0);
-			                SP_u_up2:playAnimationOnce(animation_ZhiQuan_top,false,function() u_ismoving=false; end,0);
-			                SP_u_down1:playAnimationOnce(animation_ZhiQuan_top,false,function() u_ismoving=false; end,0);
-			                SP_u_down2:playAnimationOnce(animation_ZhiQuan_top,false,function() u_ismoving=false; end,0);
+							if ismoving==false then
+					            ismoving=true;
+						        local animation_ZhiQuan_top=display.newAnimation(display.newFrames("%d-1.png",777+50,8),0.08);
+			                    SP_u_up1:playAnimationOnce(animation_ZhiQuan_top,false,function() u_ismoving=false; end,0);
+			                    SP_u_up2:playAnimationOnce(animation_ZhiQuan_top,false,function() u_ismoving=false; end,0);
+			                    SP_u_down1:playAnimationOnce(animation_ZhiQuan_top,false,function() u_ismoving=false; end,0);
+			                    SP_u_down2:playAnimationOnce(animation_ZhiQuan_top,false,function() u_ismoving=false; end,0);
+							end;
 							---------------------------------------------------------------------------------------------
 							local x_=math.abs(u_midXmid-car2_midXmid);
 							local y_=math.abs(u_midYmid-45-car2_midYmid);
@@ -1373,11 +1399,14 @@ local function makesocket()--【】【】
 						end;
 						if u_attack_dir==2 then
 						    ----------------------------------------------------------------------------------------------
-						    local animation_ZhiQuan_righttop=display.newAnimation(display.newFrames("%d-1.png",777+40,8),0.08);
-			                SP_u_up1:playAnimationOnce(animation_ZhiQuan_righttop,false,function() u_ismoving=false; end,0);
-			                SP_u_up2:playAnimationOnce(animation_ZhiQuan_righttop,false,function() u_ismoving=false; end,0);
-			                SP_u_down1:playAnimationOnce(animation_ZhiQuan_righttop,false,function() u_ismoving=false; end,0);
-			                SP_u_down2:playAnimationOnce(animation_ZhiQuan_righttop,false,function() u_ismoving=false; end,0);
+							if ismoving==false then
+					            ismoving=true;
+						        local animation_ZhiQuan_righttop=display.newAnimation(display.newFrames("%d-1.png",777+40,8),0.08);
+			                    SP_u_up1:playAnimationOnce(animation_ZhiQuan_righttop,false,function() u_ismoving=false; end,0);
+			                    SP_u_up2:playAnimationOnce(animation_ZhiQuan_righttop,false,function() u_ismoving=false; end,0);
+			                    SP_u_down1:playAnimationOnce(animation_ZhiQuan_righttop,false,function() u_ismoving=false; end,0);
+			                    SP_u_down2:playAnimationOnce(animation_ZhiQuan_righttop,false,function() u_ismoving=false; end,0);
+							end;
 							----------------------------------------------------------------------------------------------
 							local x_=math.abs(u_midXmid-car2_midXmid);
 							local y_=math.abs(u_midYmid-45-car2_midYmid);
@@ -1415,11 +1444,14 @@ local function makesocket()--【】【】
 						end;
 						if u_attack_dir==3 then
 						    ----------------------------------------------------------------------------------------------
-						    local animation_ZhiQuan_right=display.newAnimation(display.newFrames("%d-1.png",777+30,8),0.08);
-			                SP_u_up1:playAnimationOnce(animation_ZhiQuan_right,false,function() u_ismoving=false; end,0);
-			                SP_u_up2:playAnimationOnce(animation_ZhiQuan_right,false,function() u_ismoving=false; end,0);
-			                SP_u_down1:playAnimationOnce(animation_ZhiQuan_right,false,function() u_ismoving=false; end,0);
-			                SP_u_down2:playAnimationOnce(animation_ZhiQuan_right,false,function() u_ismoving=false; end,0);
+							if ismoving==false then
+					            ismoving=true;
+						        local animation_ZhiQuan_right=display.newAnimation(display.newFrames("%d-1.png",777+30,8),0.08);
+			                    SP_u_up1:playAnimationOnce(animation_ZhiQuan_right,false,function() u_ismoving=false; end,0);
+			                    SP_u_up2:playAnimationOnce(animation_ZhiQuan_right,false,function() u_ismoving=false; end,0);
+			                    SP_u_down1:playAnimationOnce(animation_ZhiQuan_right,false,function() u_ismoving=false; end,0);
+			                    SP_u_down2:playAnimationOnce(animation_ZhiQuan_right,false,function() u_ismoving=false; end,0);
+							end;
 							----------------------------------------------------------------------------------------------
 							local x_=math.abs(u_midXmid-car2_midXmid);
 							local y_=math.abs(u_midYmid-45-car2_midYmid);
@@ -1451,11 +1483,14 @@ local function makesocket()--【】【】
 						end;
 						if u_attack_dir==4 then
 						    ----------------------------------------------------------------------------------------------
-						    local animation_ZhiQuan_rightdown=display.newAnimation(display.newFrames("%d-1.png",777+20,8),0.08);
-			                SP_u_up1:playAnimationOnce(animation_ZhiQuan_rightdown,false,function() u_ismoving=false; end,0);
-			                SP_u_up2:playAnimationOnce(animation_ZhiQuan_rightdown,false,function() u_ismoving=false; end,0);
-			                SP_u_down1:playAnimationOnce(animation_ZhiQuan_rightdown,false,function() u_ismoving=false; end,0);
-			                SP_u_down2:playAnimationOnce(animation_ZhiQuan_rightdown,false,function() u_ismoving=false; end,0);
+							if ismoving==false then
+					            ismoving=true;
+						        local animation_ZhiQuan_rightdown=display.newAnimation(display.newFrames("%d-1.png",777+20,8),0.08);
+			                    SP_u_up1:playAnimationOnce(animation_ZhiQuan_rightdown,false,function() u_ismoving=false; end,0);
+			                    SP_u_up2:playAnimationOnce(animation_ZhiQuan_rightdown,false,function() u_ismoving=false; end,0);
+			                    SP_u_down1:playAnimationOnce(animation_ZhiQuan_rightdown,false,function() u_ismoving=false; end,0);
+			                    SP_u_down2:playAnimationOnce(animation_ZhiQuan_rightdown,false,function() u_ismoving=false; end,0);
+							end;
 							----------------------------------------------------------------------------------------------
 							local x_=math.abs(u_midXmid-car2_midXmid);
 							local y_=math.abs(u_midYmid-45-car2_midYmid);
@@ -1493,11 +1528,14 @@ local function makesocket()--【】【】
 						end;
 						if u_attack_dir==5 then
 						    ----------------------------------------------------------------------------------------------
-						    local animation_ZhiQuan_down=display.newAnimation(display.newFrames("%d-1.png",777+10,8),0.08);
-			                SP_u_up1:playAnimationOnce(animation_ZhiQuan_down,false,function() u_ismoving=false; end,0);
-			                SP_u_up2:playAnimationOnce(animation_ZhiQuan_down,false,function() u_ismoving=false; end,0);
-			                SP_u_down1:playAnimationOnce(animation_ZhiQuan_down,false,function() u_ismoving=false; end,0);
-			                SP_u_down2:playAnimationOnce(animation_ZhiQuan_down,false,function() u_ismoving=false; end,0);
+							if ismoving==false then
+					            ismoving=true;
+						        local animation_ZhiQuan_down=display.newAnimation(display.newFrames("%d-1.png",777+10,8),0.08);
+			                    SP_u_up1:playAnimationOnce(animation_ZhiQuan_down,false,function() u_ismoving=false; end,0);
+			                    SP_u_up2:playAnimationOnce(animation_ZhiQuan_down,false,function() u_ismoving=false; end,0);
+			                    SP_u_down1:playAnimationOnce(animation_ZhiQuan_down,false,function() u_ismoving=false; end,0);
+			                    SP_u_down2:playAnimationOnce(animation_ZhiQuan_down,false,function() u_ismoving=false; end,0);
+							end;
 							----------------------------------------------------------------------------------------------
 							local x_=math.abs(u_midXmid-car2_midXmid);
 							local y_=math.abs(u_midYmid-45-car2_midYmid);
@@ -1529,11 +1567,14 @@ local function makesocket()--【】【】
 						end;
 						if u_attack_dir==6 then
 						    ----------------------------------------------------------------------------------------------
-						    local animation_ZhiQuan_leftdown=display.newAnimation(display.newFrames("%d-1.png",777,8),0.08);
-			                SP_u_up1:playAnimationOnce(animation_ZhiQuan_leftdown,false,function() u_ismoving=false; end,0);
-			                SP_u_up2:playAnimationOnce(animation_ZhiQuan_leftdown,false,function() u_ismoving=false; end,0);
-			                SP_u_down1:playAnimationOnce(animation_ZhiQuan_leftdown,false,function() u_ismoving=false; end,0);
-			                SP_u_down2:playAnimationOnce(animation_ZhiQuan_leftdown,false,function() u_ismoving=false; end,0);
+							if ismoving==false then
+					            ismoving=true;
+						        local animation_ZhiQuan_leftdown=display.newAnimation(display.newFrames("%d-1.png",777,8),0.08);
+			                    SP_u_up1:playAnimationOnce(animation_ZhiQuan_leftdown,false,function() u_ismoving=false; end,0);
+			                    SP_u_up2:playAnimationOnce(animation_ZhiQuan_leftdown,false,function() u_ismoving=false; end,0);
+			                    SP_u_down1:playAnimationOnce(animation_ZhiQuan_leftdown,false,function() u_ismoving=false; end,0);
+			                    SP_u_down2:playAnimationOnce(animation_ZhiQuan_leftdown,false,function() u_ismoving=false; end,0);
+							end;
 							----------------------------------------------------------------------------------------------
 							local x_=math.abs(u_midXmid-car2_midXmid);
 							local y_=math.abs(u_midYmid-45-car2_midYmid);
@@ -1571,11 +1612,14 @@ local function makesocket()--【】【】
 						end;
 						if u_attack_dir==7 then
 						    ----------------------------------------------------------------------------------------------
-						    local animation_ZhiQuan_left=display.newAnimation(display.newFrames("%d-1.png",777+70,8),0.08);
-			                SP_u_up1:playAnimationOnce(animation_ZhiQuan_left,false,function() u_ismoving=false; end,0);
-			                SP_u_up2:playAnimationOnce(animation_ZhiQuan_left,false,function() u_ismoving=false; end,0);
-			                SP_u_down1:playAnimationOnce(animation_ZhiQuan_left,false,function() u_ismoving=false; end,0);
-			                SP_u_down2:playAnimationOnce(animation_ZhiQuan_left,false,function() u_ismoving=false; end,0);
+							if ismoving==false then
+					            ismoving=true;
+						        local animation_ZhiQuan_left=display.newAnimation(display.newFrames("%d-1.png",777+70,8),0.08);
+			                    SP_u_up1:playAnimationOnce(animation_ZhiQuan_left,false,function() u_ismoving=false; end,0);
+			                    SP_u_up2:playAnimationOnce(animation_ZhiQuan_left,false,function() u_ismoving=false; end,0);
+			                    SP_u_down1:playAnimationOnce(animation_ZhiQuan_left,false,function() u_ismoving=false; end,0);
+			                    SP_u_down2:playAnimationOnce(animation_ZhiQuan_left,false,function() u_ismoving=false; end,0);
+							end;
 							----------------------------------------------------------------------------------------------
 							local x_=math.abs(u_midXmid-car2_midXmid);
 							local y_=math.abs(u_midYmid-45-car2_midYmid);
@@ -1607,11 +1651,14 @@ local function makesocket()--【】【】
 						end;
 						if u_attack_dir==8 then
 						    ----------------------------------------------------------------------------------------------
-						    local animation_ZhiQuan_lefttop=display.newAnimation(display.newFrames("%d-1.png",777+60,8),0.08);
-			                SP_u_up1:playAnimationOnce(animation_ZhiQuan_lefttop,false,function() u_ismoving=false; end,0);
-			                SP_u_up2:playAnimationOnce(animation_ZhiQuan_lefttop,false,function() u_ismoving=false; end,0);
-			                SP_u_down1:playAnimationOnce(animation_ZhiQuan_lefttop,false,function() u_ismoving=false; end,0);
-			                SP_u_down2:playAnimationOnce(animation_ZhiQuan_lefttop,false,function() u_ismoving=false; end,0);
+							if ismoving==false then
+					            ismoving=true;
+						        local animation_ZhiQuan_lefttop=display.newAnimation(display.newFrames("%d-1.png",777+60,8),0.08);
+			                    SP_u_up1:playAnimationOnce(animation_ZhiQuan_lefttop,false,function() u_ismoving=false; end,0);
+			                    SP_u_up2:playAnimationOnce(animation_ZhiQuan_lefttop,false,function() u_ismoving=false; end,0);
+			                    SP_u_down1:playAnimationOnce(animation_ZhiQuan_lefttop,false,function() u_ismoving=false; end,0);
+			                    SP_u_down2:playAnimationOnce(animation_ZhiQuan_lefttop,false,function() u_ismoving=false; end,0);
+							end;
 							----------------------------------------------------------------------------------------------
 							local x_=math.abs(u_midXmid-car2_midXmid);
 							local y_=math.abs(u_midYmid-45-car2_midYmid);
@@ -1832,6 +1879,28 @@ function function_timer()
 		SP_car1:setSpriteFrame(cc.SpriteFrameCache:getInstance():getSpriteFrame("car1.png"));
 		SP_car2:setSpriteFrame(cc.SpriteFrameCache:getInstance():getSpriteFrame("car2.png"));
 		--【小车显示层初始化】end
+		--【小车的显示与消失】begin
+		                        if car1_life>0 then
+							        SP_car1:setVisible(true);
+							        SP_car1_life:setVisible(true);
+							        SP_car1_life_:setVisible(true);
+								end;
+								if car2_life>0 then
+							        SP_car2:setVisible(true);
+							        SP_car2_life:setVisible(true);
+							        SP_car2_life_:setVisible(true);
+								end;
+							    if car1_life<=0 then
+							        SP_car1:setVisible(false);
+							        SP_car1_life:setVisible(false);
+							        SP_car1_life_:setVisible(false);
+								end;
+								if car2_life<=0 then
+							        SP_car2:setVisible(false);
+							        SP_car2_life:setVisible(false);
+							        SP_car2_life_:setVisible(false);
+								end;
+		--【小车的显示与消失】end
 		--【小车的生成】begin
 		if car1_life<=0 and car2_life<=0 then
 		    car1_life=100;
@@ -2188,7 +2257,7 @@ function function_timer()
 			end;
 			SP_I_up:align(display.CENTER, screenW/2+I_midXmid, screenH/2+I_midYmid);
 			SP_I_down:align(display.CENTER, screenW/2+I_midXmid, screenH/2+I_midYmid);
-			if ismoving==false then
+			if ismoving==false  then
 			    ismoving=true;
 			    local animation_XingZou_top=display.newAnimation(display.newFrames("%d-1.png",65+40,8),0.02);--时间间隔0.2
 			    SP_I_up:playAnimationOnce(animation_XingZou_top,false,function() ismoving=false; end,0);
@@ -2211,7 +2280,7 @@ function function_timer()
 			end;
 			SP_I_up:align(display.CENTER, screenW/2+I_midXmid, screenH/2+I_midYmid);
 			SP_I_down:align(display.CENTER, screenW/2+I_midXmid, screenH/2+I_midYmid);
-			if ismoving==false then
+			if ismoving==false  then
 			    ismoving=true;
 			    local animation_XingZou_righttop=display.newAnimation(display.newFrames("%d-1.png",65+32,8),0.02);--时间间隔0.2
 			    SP_I_up:playAnimationOnce(animation_XingZou_righttop,false,function() ismoving=false; end,0);
@@ -2228,7 +2297,7 @@ function function_timer()
 			end;
 			SP_I_up:align(display.CENTER, screenW/2+I_midXmid, screenH/2+I_midYmid);
 			SP_I_down:align(display.CENTER, screenW/2+I_midXmid, screenH/2+I_midYmid);
-			if ismoving==false then
+			if ismoving==false  then
 			    ismoving=true;
 			    local animation_XingZou_right=display.newAnimation(display.newFrames("%d-1.png",65+24,8),0.02);--时间间隔0.2
 			    SP_I_up:playAnimationOnce(animation_XingZou_right,false,function() ismoving=false; end,0);
@@ -2251,7 +2320,7 @@ function function_timer()
 			end;
 			SP_I_up:align(display.CENTER, screenW/2+I_midXmid, screenH/2+I_midYmid);
 			SP_I_down:align(display.CENTER, screenW/2+I_midXmid, screenH/2+I_midYmid);
-			if ismoving==false then
+			if ismoving==false  then
 			    ismoving=true;
 			    local animation_XingZou_rightdown=display.newAnimation(display.newFrames("%d-1.png",65+16,8),0.02);--时间间隔0.2
 			    SP_I_up:playAnimationOnce(animation_XingZou_rightdown,false,function() ismoving=false; end,0);
@@ -2268,7 +2337,7 @@ function function_timer()
 			end;
 			SP_I_up:align(display.CENTER, screenW/2+I_midXmid, screenH/2+I_midYmid);
 			SP_I_down:align(display.CENTER, screenW/2+I_midXmid, screenH/2+I_midYmid);
-			if ismoving==false then
+			if ismoving==false  then
 			    ismoving=true;
 			    local animation_XingZou_down=display.newAnimation(display.newFrames("%d-1.png",65+8,8),0.02);--时间间隔0.2
 			    SP_I_up:playAnimationOnce(animation_XingZou_down,false,function() ismoving=false; end,0);
@@ -2291,7 +2360,7 @@ function function_timer()
 			end;
 			SP_I_up:align(display.CENTER, screenW/2+I_midXmid, screenH/2+I_midYmid);
 			SP_I_down:align(display.CENTER, screenW/2+I_midXmid, screenH/2+I_midYmid);
-			if ismoving==false then
+			if ismoving==false  then
 			    ismoving=true;
 			    local animation_XingZou_leftdown=display.newAnimation(display.newFrames("%2d-1.png",65,8),0.02);--时间间隔0.2
 			    SP_I_up:playAnimationOnce(animation_XingZou_leftdown,false,function() ismoving=false; end,0);
@@ -2308,7 +2377,7 @@ function function_timer()
 			end;
 			SP_I_up:align(display.CENTER, screenW/2+I_midXmid, screenH/2+I_midYmid);
 			SP_I_down:align(display.CENTER, screenW/2+I_midXmid, screenH/2+I_midYmid);
-			if ismoving==false then
+			if ismoving==false  then
 			    ismoving=true;
 			    local animation_XingZou_left=display.newAnimation(display.newFrames("%d-1.png",65+56,8),0.02);--时间间隔0.2
 			    SP_I_up:playAnimationOnce(animation_XingZou_left,false,function() ismoving=false; end,0);
@@ -2331,7 +2400,7 @@ function function_timer()
 			end;
 			SP_I_up:align(display.CENTER, screenW/2+I_midXmid, screenH/2+I_midYmid);
 			SP_I_down:align(display.CENTER, screenW/2+I_midXmid, screenH/2+I_midYmid);
-			if ismoving==false then
+			if ismoving==false  then
 			    ismoving=true;
 			    local animation_XingZou_lefttop=display.newAnimation(display.newFrames("%d-1.png",65+48,8),0.02);--时间间隔0.2
 			    SP_I_up:playAnimationOnce(animation_XingZou_lefttop,false,function() ismoving=false; end,0);
@@ -2348,7 +2417,7 @@ function function_timer()
 			SP_u_up2:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid);
 			SP_u_down1:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid);
 			SP_u_down2:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid);
-			if u_ismoving==false then
+			if u_ismoving==false  then
 			    u_ismoving=true;
 			    local animation_XingZou_top=display.newAnimation(display.newFrames("%d-1.png",65+40,8),0.02);--时间间隔0.2
 			    SP_u_up1:playAnimationOnce(animation_XingZou_top,false,function() u_ismoving=false; end,0);
@@ -2368,7 +2437,7 @@ function function_timer()
 			SP_u_up2:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid);
 			SP_u_down1:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid);
 			SP_u_down2:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid);
-			if u_ismoving==false then
+			if u_ismoving==false  then
 			    u_ismoving=true;
 			    local animation_XingZou_righttop=display.newAnimation(display.newFrames("%d-1.png",65+32,8),0.02);--时间间隔0.2
 			    SP_u_up1:playAnimationOnce(animation_XingZou_righttop,false,function() u_ismoving=false; end,0);
@@ -2385,7 +2454,7 @@ function function_timer()
 			SP_u_up2:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid);
 			SP_u_down1:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid);
 			SP_u_down2:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid);
-			if u_ismoving==false then
+			if u_ismoving==false  then
 			    u_ismoving=true;
 			    local animation_XingZou_right=display.newAnimation(display.newFrames("%d-1.png",65+24,8),0.02);--时间间隔0.2
 			    SP_u_up1:playAnimationOnce(animation_XingZou_right,false,function() u_ismoving=false; end,0);
@@ -2405,7 +2474,7 @@ function function_timer()
 			SP_u_up2:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid);
 			SP_u_down1:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid);
 			SP_u_down2:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid);
-			if u_ismoving==false then
+			if u_ismoving==false  then
 			    u_ismoving=true;
 			    local animation_XingZou_rightdown=display.newAnimation(display.newFrames("%d-1.png",65+16,8),0.02);--时间间隔0.2
 			    SP_u_up1:playAnimationOnce(animation_XingZou_rightdown,false,function() u_ismoving=false; end,0);
@@ -2422,7 +2491,7 @@ function function_timer()
 			SP_u_up2:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid);
 			SP_u_down1:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid);
 			SP_u_down2:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid);
-			if u_ismoving==false then
+			if u_ismoving==false  then
 			    u_ismoving=true;
 			    local animation_XingZou_down=display.newAnimation(display.newFrames("%d-1.png",65+8,8),0.02);--时间间隔0.2
 			    SP_u_up1:playAnimationOnce(animation_XingZou_down,false,function() u_ismoving=false; end,0);
@@ -2442,7 +2511,7 @@ function function_timer()
 			SP_u_up2:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid);
 			SP_u_down1:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid);
 			SP_u_down2:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid);
-			if u_ismoving==false then
+			if u_ismoving==false  then
 			    u_ismoving=true;
 			    local animation_XingZou_leftdown=display.newAnimation(display.newFrames("%2d-1.png",65,8),0.02);--时间间隔0.2
 			    SP_u_up1:playAnimationOnce(animation_XingZou_leftdown,false,function() u_ismoving=false; end,0);
@@ -2459,7 +2528,7 @@ function function_timer()
 			SP_u_up2:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid);
 			SP_u_down1:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid);
 			SP_u_down2:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid);
-			if u_ismoving==false then
+			if u_ismoving==false  then
 			    u_ismoving=true;
 			    local animation_XingZou_left=display.newAnimation(display.newFrames("%d-1.png",65+56,8),0.02);--时间间隔0.2
 			    SP_u_up1:playAnimationOnce(animation_XingZou_left,false,function() u_ismoving=false; end,0);
@@ -2479,7 +2548,7 @@ function function_timer()
 			SP_u_up2:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid);
 			SP_u_down1:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid);
 			SP_u_down2:align(display.CENTER, screenW/2+u_midXmid, screenH/2+u_midYmid);
-			if u_ismoving==false then
+			if u_ismoving==false  then
 			    u_ismoving=true;
 			    local animation_XingZou_lefttop=display.newAnimation(display.newFrames("%d-1.png",65+48,8),0.02);--时间间隔0.2
 			    SP_u_up1:playAnimationOnce(animation_XingZou_lefttop,false,function() u_ismoving=false; end,0);
